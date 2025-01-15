@@ -14,6 +14,12 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.5.0
 )
 
+replace (
+	github.com/openshift/api => github.com/bertinatto/api v0.0.0-20241118173033-4423434d67cf
+	github.com/openshift/client-go => github.com/bertinatto/client-go v0.0.0-20241209194446-f30a3ddc774e
+	//replace github.com/openshift/library-go => github.com/bertinatto/library-go bump-v1.32
+)
+
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

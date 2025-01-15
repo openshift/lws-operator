@@ -32,6 +32,12 @@ $(call verify-golang-versions,Dockerfile)
 
 $(call add-crd-gen,lwsoperator,./pkg/apis/lwsoperator/v1alpha1,./manifests/,./manifests/)
 
+regen-crd:
+	go build -o _output/tools/bin/controller-gen ./vendor/sigs.k8s.io/controller-tools/cmd/controller-gen
+	cp manifests/lws-operator.crd.yaml manifests/operator.openshift.io_lwsoperators.yaml
+	./_output/tools/bin/controller-gen crd paths=./pkg/apis/lwsoperator/v1alpha1/... schemapatch:manifests=./manifests output:crd:dir=./manifests
+	mv manifests/operator.openshift.io_lwsoperators.yaml manifests/lws-operator.crd.yaml
+
 generate: update-codegen-crds generate-clients
 .PHONY: generate
 
