@@ -33,7 +33,7 @@ kube::codegen::gen_helpers \
 
 kube::codegen::gen_client \
     --output-dir "${SCRIPT_ROOT}/pkg/generated" \
-    --output-pkg "github.com/openshift/lwsoperator-operator/pkg/generated" \
+    --output-pkg "github.com/openshift/lws-operator/pkg/generated" \
     --applyconfig-externals "github.com/openshift/api/operator/v1.OperatorSpec:github.com/openshift/client-go/operator/applyconfigurations/operator/v1,github.com/openshift/api/operator/v1.OperatorStatus:github.com/openshift/client-go/operator/applyconfigurations/operator/v1,github.com/openshift/api/operator/v1.OperatorCondition:github.com/openshift/client-go/operator/applyconfigurations/operator/v1,github.com/openshift/api/operator/v1.GenerationStatus:github.com/openshift/client-go/operator/applyconfigurations/operator/v1" \
     --applyconfig-openapi-schema openapi.json \
     --boilerplate "${SCRIPT_ROOT}/hack/boilerplate.go.txt" \

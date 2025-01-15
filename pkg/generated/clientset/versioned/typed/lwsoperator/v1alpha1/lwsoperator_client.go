@@ -17,10 +17,10 @@ limitations under the License.
 package v1alpha1
 
 import (
-	lwsoperatorv1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
+	lwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/apis/lwsoperator/v1alpha1"
 	http "net/http"
 
-	scheme "github.com/openshift/lwsoperator-operator/pkg/generated/clientset/versioned/scheme"
+	scheme "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

@@ -17,7 +17,7 @@ limitations under the License.
 package fake
 
 import (
-	v1alpha1 "github.com/openshift/lwsoperator-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1"
+	v1alpha1 "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

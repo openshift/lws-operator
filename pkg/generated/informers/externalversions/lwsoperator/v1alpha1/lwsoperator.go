@@ -18,12 +18,12 @@ package v1alpha1
 
 import (
 	context "context"
-	apislwsoperatorv1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
+	apislwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/apis/lwsoperator/v1alpha1"
 	time "time"
 
-	versioned "github.com/openshift/lwsoperator-operator/pkg/generated/clientset/versioned"
-	internalinterfaces "github.com/openshift/lwsoperator-operator/pkg/generated/informers/externalversions/internalinterfaces"
-	lwsoperatorv1alpha1 "github.com/openshift/lwsoperator-operator/pkg/generated/listers/lwsoperator/v1alpha1"
+	versioned "github.com/openshift/lws-operator/pkg/generated/clientset/versioned"
+	internalinterfaces "github.com/openshift/lws-operator/pkg/generated/informers/externalversions/internalinterfaces"
+	lwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/generated/listers/lwsoperator/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"

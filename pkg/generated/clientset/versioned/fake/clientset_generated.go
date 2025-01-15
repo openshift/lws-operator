@@ -17,10 +17,10 @@ limitations under the License.
 package fake
 
 import (
-	applyconfiguration "github.com/openshift/lwsoperator-operator/pkg/generated/applyconfiguration"
-	clientset "github.com/openshift/lwsoperator-operator/pkg/generated/clientset/versioned"
-	lwsoperatorsv1alpha1 "github.com/openshift/lwsoperator-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1"
-	fakelwsoperatorsv1alpha1 "github.com/openshift/lwsoperator-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1/fake"
+	applyconfiguration "github.com/openshift/lws-operator/pkg/generated/applyconfiguration"
+	clientset "github.com/openshift/lws-operator/pkg/generated/clientset/versioned"
+	lwsoperatorsv1alpha1 "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1"
+	fakelwsoperatorsv1alpha1 "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
