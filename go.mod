@@ -14,8 +14,6 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.5.0
 )
 
-replace github.com/openshift/lws-operator => github.com/ardaguclu/lws-operator initial-impl
-
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

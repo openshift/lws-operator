@@ -21,9 +21,9 @@ import (
 	sync "sync"
 	time "time"
 
-	versioned "github.com/openshift/lws-operator/pkg/generated/clientset/versioned"
-	internalinterfaces "github.com/openshift/lws-operator/pkg/generated/informers/externalversions/internalinterfaces"
-	lwsoperator "github.com/openshift/lws-operator/pkg/generated/informers/externalversions/lwsoperator"
+	versioned "lws-operator/pkg/generated/clientset/versioned"
+	internalinterfaces "lws-operator/pkg/generated/informers/externalversions/internalinterfaces"
+	lwsoperator "lws-operator/pkg/generated/informers/externalversions/lwsoperator"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

@@ -17,7 +17,7 @@ limitations under the License.
 package scheme
 
 import (
-	lwsoperatorsv1alpha1 "github.com/openshift/lws-operator/pkg/apis/lwsoperator/v1alpha1"
+	lwsoperatorsv1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"

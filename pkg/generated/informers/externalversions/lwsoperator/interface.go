@@ -17,8 +17,8 @@ limitations under the License.
 package lwsoperator
 
 import (
-	internalinterfaces "github.com/openshift/lws-operator/pkg/generated/informers/externalversions/internalinterfaces"
-	v1alpha1 "github.com/openshift/lws-operator/pkg/generated/informers/externalversions/lwsoperator/v1alpha1"
+	internalinterfaces "lws-operator/pkg/generated/informers/externalversions/internalinterfaces"
+	v1alpha1 "lws-operator/pkg/generated/informers/externalversions/lwsoperator/v1alpha1"
 )
 
 // Interface provides access to each of this group's versions.
