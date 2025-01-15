@@ -5,7 +5,7 @@ metadata:
     app.kubernetes.io/created-by: lws-operator
     app.kubernetes.io/name: clusterrole
     app.kubernetes.io/part-of: lws-operator
-  name: openshift-lws-metrics-reader
+  name: lws-metrics-reader
 rules:
   - nonResourceURLs:
       - /metrics

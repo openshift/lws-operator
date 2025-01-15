@@ -5,7 +5,7 @@ metadata:
     app.kubernetes.io/created-by: lws-operator
     app.kubernetes.io/name: clusterrole
     app.kubernetes.io/part-of: lws-operator
-  name: openshift-lws-proxy-role
+  name: lws-proxy-role
 rules:
   - apiGroups:
       - authentication.k8s.io

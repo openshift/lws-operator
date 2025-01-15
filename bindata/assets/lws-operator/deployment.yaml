@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: deployment
     app.kubernetes.io/part-of: lws-operator
     control-plane: controller-manager
-  name: openshift-lws-controller-manager
+  name: lws-controller-manager
   namespace: openshift-lws-system
 spec:
   replicas: 2
@@ -58,10 +58,10 @@ spec:
               readOnly: true
       securityContext:
         runAsNonRoot: true
-      serviceAccountName: openshift-lws-controller-manager
+      serviceAccountName: lws-controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
         - name: cert
           secret:
             defaultMode: 420
-            secretName: openshift-lws-webhook-server-cert
+            secretName: lws-webhook-server-cert

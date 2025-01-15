@@ -4,7 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/created-by: lws-operator
     app.kubernetes.io/name: service
-  name: openshift-lws-webhook-service
+  name: lws-webhook-service
   namespace: openshift-lws-system
 spec:
   ports:

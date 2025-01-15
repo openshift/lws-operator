@@ -5,12 +5,12 @@ metadata:
     app.kubernetes.io/created-by: lws-operator
     app.kubernetes.io/name: clusterrolebinding
     app.kubernetes.io/part-of: lws-operator
-  name: openshift-lws-manager-rolebinding
+  name: lws-manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: openshift-lws-manager-role
+  name: lws-manager-role
 subjects:
   - kind: ServiceAccount
-    name: openshift-lws-controller-manager
+    name: lws-controller-manager
     namespace: openshift-lws-system

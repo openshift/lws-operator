@@ -5,7 +5,7 @@ metadata:
     app.kubernetes.io/created-by: lws-operator
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: lws-operator
-  name: openshift-lws-leader-election-rolebinding
+  name: lws-leader-election-rolebinding
   namespace: openshift-lws-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io

@@ -1,13 +1,13 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: openshift-lws-mutating-webhook-configuration
+  name: lws-mutating-webhook-configuration
 webhooks:
   - admissionReviewVersions:
       - v1
     clientConfig:
       service:
-        name: openshift-lws-webhook-service
+        name: lws-webhook-service
         namespace: openshift-lws-system
         path: /mutate-leaderworkerset-x-k8s-io-v1-leaderworkerset
     failurePolicy: Fail
@@ -27,7 +27,7 @@ webhooks:
       - v1
     clientConfig:
       service:
-        name: openshift-lws-webhook-service
+        name: lws-webhook-service
         namespace: openshift-lws-system
         path: /mutate--v1-pod
     failurePolicy: Fail

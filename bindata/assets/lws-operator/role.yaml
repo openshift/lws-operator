@@ -5,7 +5,7 @@ metadata:
     app.kubernetes.io/created-by: lws-operator
     app.kubernetes.io/name: role
     app.kubernetes.io/part-of: lws-operator
-  name: openshift-lws-leader-election-role
+  name: lws-leader-election-role
   namespace: openshift-lws-system
 rules:
   - apiGroups:
