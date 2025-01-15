@@ -2,10 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app.kubernetes.io/component: webhook
-    app.kubernetes.io/created-by: lws
-    app.kubernetes.io/instance: webhook-service
-    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: lws-operator
     app.kubernetes.io/name: service
   name: openshift-lws-webhook-service
   namespace: openshift-lws-system
