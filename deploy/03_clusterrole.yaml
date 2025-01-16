@@ -82,6 +82,7 @@ rules:
       - events
       - pods
       - secrets
+      - configmaps
     verbs:
       - create
       - delete

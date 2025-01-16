@@ -6,11 +6,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/openshift/secondary-scheduler-operator/pkg/cmd/operator"
+	//"github.com/openshift/lws-operator/pkg/cmd/operator"
 )
 
 func main() {
-	command := NewSecondarySchedulerOperatorCommand()
+	command := NewLWSOperatorCommand()
 	if err := command.Execute(); err != nil {
 		_, err := fmt.Fprintf(os.Stderr, "%v\n", err)
 		if err != nil {
@@ -20,10 +20,10 @@ func main() {
 	}
 }
 
-func NewSecondarySchedulerOperatorCommand() *cobra.Command {
+func NewLWSOperatorCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "secondary-scheduler-operator",
-		Short: "OpenShift cluster secondary-scheduler operator",
+		Use:   "lws-operator",
+		Short: "OpenShift cluster LWS operator",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := cmd.Help()
 			if err != nil {
@@ -33,6 +33,6 @@ func NewSecondarySchedulerOperatorCommand() *cobra.Command {
 		},
 	}
 
-	cmd.AddCommand(operator.NewOperator())
+	//cmd.AddCommand(operator.NewOperator())
 	return cmd
 }
