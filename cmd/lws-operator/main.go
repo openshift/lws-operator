@@ -1,16 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 
-	//"github.com/openshift/lws-operator/pkg/cmd/operator"
+	"github.com/openshift/lws-operator/pkg/cmd/operator"
 )
 
 func main() {
-	command := NewLWSOperatorCommand()
+	command := NewLWSOperatorCommand(context.Background())
 	if err := command.Execute(); err != nil {
 		_, err := fmt.Fprintf(os.Stderr, "%v\n", err)
 		if err != nil {
@@ -20,7 +21,7 @@ func main() {
 	}
 }
 
-func NewLWSOperatorCommand() *cobra.Command {
+func NewLWSOperatorCommand(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lws-operator",
 		Short: "OpenShift cluster LWS operator",
@@ -33,6 +34,6 @@ func NewLWSOperatorCommand() *cobra.Command {
 		},
 	}
 
-	//cmd.AddCommand(operator.NewOperator())
+	cmd.AddCommand(operator.NewOperator(ctx))
 	return cmd
 }
