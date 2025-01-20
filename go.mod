@@ -1,4 +1,4 @@
-module lws-operator
+module github.com/openshift/lws-operator
 
 go 1.23.0
 
@@ -7,6 +7,7 @@ require (
 	github.com/openshift/build-machinery-go v0.0.0-20250102153059-e85a1a7ecb5c
 	github.com/openshift/client-go v0.0.0-20250106104058-89709a455e2a
 	github.com/prometheus/client_golang v1.20.5
+	github.com/spf13/cobra v1.8.1
 	k8s.io/apimachinery v0.32.0
 	k8s.io/client-go v0.32.0
 	k8s.io/code-generator v0.32.0
@@ -17,7 +18,7 @@ require (
 replace (
 	github.com/openshift/api => github.com/bertinatto/api v0.0.0-20241118173033-4423434d67cf
 	github.com/openshift/client-go => github.com/bertinatto/client-go v0.0.0-20241209194446-f30a3ddc774e
-	//replace github.com/openshift/library-go => github.com/bertinatto/library-go bump-v1.32
+//replace github.com/openshift/library-go => github.com/bertinatto/library-go bump-v1.32
 )
 
 require (
@@ -51,7 +52,6 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/mod v0.22.0 // indirect

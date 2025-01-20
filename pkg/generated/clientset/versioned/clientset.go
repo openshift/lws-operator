@@ -20,7 +20,7 @@ import (
 	fmt "fmt"
 	http "net/http"
 
-	lwsoperatorsv1alpha1 "lws-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1"
+	lwsoperatorsv1alpha1 "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

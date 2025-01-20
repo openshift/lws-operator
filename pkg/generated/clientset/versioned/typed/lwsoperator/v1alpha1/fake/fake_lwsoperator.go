@@ -19,8 +19,8 @@ package fake
 import (
 	v1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
 
-	lwsoperatorv1alpha1 "lws-operator/pkg/generated/applyconfiguration/lwsoperator/v1alpha1"
-	typedlwsoperatorv1alpha1 "lws-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1"
+	lwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/lwsoperator/v1alpha1"
+	typedlwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1"
 	gentype "k8s.io/client-go/gentype"
 )
 

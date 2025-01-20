@@ -20,7 +20,7 @@ import (
 	lwsoperatorv1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
 	http "net/http"
 
-	scheme "lws-operator/pkg/generated/clientset/versioned/scheme"
+	scheme "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 
