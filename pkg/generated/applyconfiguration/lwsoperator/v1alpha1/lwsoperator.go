@@ -17,7 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	lwsoperatorv1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
+	lwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/apis/lwsoperator/v1alpha1"
 
 	internal "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/internal"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

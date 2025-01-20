@@ -17,7 +17,7 @@ limitations under the License.
 package applyconfiguration
 
 import (
-	v1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
+	v1alpha1 "github.com/openshift/lws-operator/pkg/apis/lwsoperator/v1alpha1"
 
 	internal "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/internal"
 	lwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/lwsoperator/v1alpha1"

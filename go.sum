@@ -8,10 +8,6 @@ github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a h1:idn718Q4
 github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a/go.mod h1:lB+ZfQJz7igIIfQNfa7Ml4HSf2uFQQRzpGGRXenZAgY=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/bertinatto/api v0.0.0-20241118173033-4423434d67cf h1:NIhrKUxph5M/MTtj2LQ9Toyz34pjnVOyYcM3Mb80xJo=
-github.com/bertinatto/api v0.0.0-20241118173033-4423434d67cf/go.mod h1:EpEsYxjemQH4kdnf1SPc2zU6rfBni2OKjjIJXT6+sDU=
-github.com/bertinatto/client-go v0.0.0-20241209194446-f30a3ddc774e h1:T8Px9xaTV103kpfaum+dspEc8K53NgteYgZR1Ju6L5c=
-github.com/bertinatto/client-go v0.0.0-20241209194446-f30a3ddc774e/go.mod h1:V7ztUMfSIPNxLFtWuRn3bDCD0qF00Gg+i8fGD7+U5ug=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
 github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK343L8=
@@ -37,6 +33,10 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dusk125/api v0.0.0-20250115205320-c922b0f2a47a h1:L60Q2sVXnsu2H9hPUeyxd3SkJ51hRiVTVyFIr7YieLo=
+github.com/dusk125/api v0.0.0-20250115205320-c922b0f2a47a/go.mod h1:lvUN3WEfcZlZxWNEhBKGAbW1UqaIexBLqcYIMXQDh2c=
+github.com/dusk125/client-go v0.0.0-20250115211336-4d0b46a43d47 h1:3XILDWlEPjL8L/UaMoALhe4wU/qwpfrLpUcrc6l59Ag=
+github.com/dusk125/client-go v0.0.0-20250115211336-4d0b46a43d47/go.mod h1:ss8gtft1x61u2YObgsxSslZhrvuOnUCBcru60YKYijg=
 github.com/dusk125/library-go v0.0.0-20250115212358-52a05c8ff11a h1:ZpeYOvTYpJ108XBXagFoFrLBJCEItARt5zjbq1VvDSs=
 github.com/dusk125/library-go v0.0.0-20250115212358-52a05c8ff11a/go.mod h1:BqRv3YDZ/RP5gVMwzMaq+UR6ZHXjRDQXlmddnHVTysg=
 github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=

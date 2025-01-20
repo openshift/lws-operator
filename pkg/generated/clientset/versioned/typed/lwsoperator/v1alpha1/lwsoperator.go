@@ -18,7 +18,7 @@ package v1alpha1
 
 import (
 	context "context"
-	lwsoperatorv1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
+	lwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/apis/lwsoperator/v1alpha1"
 
 	applyconfigurationlwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/lwsoperator/v1alpha1"
 	scheme "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/scheme"
