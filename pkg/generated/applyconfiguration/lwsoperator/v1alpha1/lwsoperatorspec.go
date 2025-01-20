@@ -26,6 +26,7 @@ import (
 // with apply.
 type LwsOperatorSpecApplyConfiguration struct {
 	v1.OperatorSpecApplyConfiguration `json:",inline"`
+	Namespace                         *string `json:"namespace,omitempty"`
 }
 
 // LwsOperatorSpecApplyConfiguration constructs a declarative configuration of the LwsOperatorSpec type for use with
@@ -71,5 +72,13 @@ func (b *LwsOperatorSpecApplyConfiguration) WithUnsupportedConfigOverrides(value
 // If called multiple times, the ObservedConfig field is set to the value of the last call.
 func (b *LwsOperatorSpecApplyConfiguration) WithObservedConfig(value runtime.RawExtension) *LwsOperatorSpecApplyConfiguration {
 	b.OperatorSpecApplyConfiguration.ObservedConfig = &value
+	return b
+}
+
+// WithNamespace sets the Namespace field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the Namespace field is set to the value of the last call.
+func (b *LwsOperatorSpecApplyConfiguration) WithNamespace(value string) *LwsOperatorSpecApplyConfiguration {
+	b.Namespace = &value
 	return b
 }

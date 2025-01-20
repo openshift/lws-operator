@@ -27,6 +27,11 @@ type LwsOperator struct {
 // LwsOperatorSpec defines the desired state of LwsOperator
 type LwsOperatorSpec struct {
 	operatorv1.OperatorSpec `json:",inline"`
+
+	// Namespace defines the namespace where LWS is created.
+	// This field is optional and if it is not specified,
+	// it defaults to openshift-lws-system
+	Namespace string `json:"namespace,omitempty"`
 }
 
 // LwsOperatorStatus defines the observed state of LwsOperator

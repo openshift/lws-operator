@@ -25,7 +25,6 @@ spec:
             - --config=/controller_manager_config.yaml
             - --zap-log-level=2
           command:
-            # TODO: disable internal cert rotation, configure webhook certdir if necessary
             - /manager
           image: gcr.io/k8s-staging-lws/lws:main
           livenessProbe:

@@ -19,8 +19,8 @@ package applyconfiguration
 import (
 	v1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
 
-	internal "lws-operator/pkg/generated/applyconfiguration/internal"
-	lwsoperatorv1alpha1 "lws-operator/pkg/generated/applyconfiguration/lwsoperator/v1alpha1"
+	internal "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/internal"
+	lwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/lwsoperator/v1alpha1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	testing "k8s.io/client-go/testing"
