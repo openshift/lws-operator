@@ -18,8 +18,8 @@ require (
 )
 
 replace (
-	github.com/openshift/api => github.com/bertinatto/api v0.0.0-20241118173033-4423434d67cf
-	github.com/openshift/client-go => github.com/bertinatto/client-go v0.0.0-20241209194446-f30a3ddc774e
+	github.com/openshift/api => github.com/dusk125/api v0.0.0-20250115205320-c922b0f2a47a
+	github.com/openshift/client-go => github.com/dusk125/client-go v0.0.0-20250115211336-4d0b46a43d47
 	github.com/openshift/library-go => github.com/dusk125/library-go v0.0.0-20250115212358-52a05c8ff11a
 )
 
