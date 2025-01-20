@@ -20,8 +20,8 @@ import (
 	context "context"
 	lwsoperatorv1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
 
-	applyconfigurationlwsoperatorv1alpha1 "lws-operator/pkg/generated/applyconfiguration/lwsoperator/v1alpha1"
-	scheme "lws-operator/pkg/generated/clientset/versioned/scheme"
+	applyconfigurationlwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/lwsoperator/v1alpha1"
+	scheme "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

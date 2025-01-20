@@ -1,21 +1,22 @@
 package operator
 
 import (
-//"github.com/spf13/cobra"
-//"lws-operator/pkg/version"
+	"context"
 
-//"github.com/openshift/library-go/pkg/controller/controllercmd"
-//"github.com/openshift/secondary-scheduler-operator/pkg/operator"
-//"github.com/openshift/secondary-scheduler-operator/pkg/version"
+	"github.com/spf13/cobra"
+	"k8s.io/utils/clock"
+
+	"github.com/openshift/library-go/pkg/controller/controllercmd"
+	"github.com/openshift/lws-operator/pkg/operator"
+	"github.com/openshift/lws-operator/pkg/version"
 )
 
-/*func NewOperator() *cobra.Command {
+func NewOperator(ctx context.Context) *cobra.Command {
 	cmd := controllercmd.
-		//NewControllerCommandConfig("openshift-secondary-scheduler-operator", version.Get(), operator.RunOperator).
-		NewControllerCommandConfig("openshift-lws-operator", version.Get(), nil).
-		NewCommand()
+		NewControllerCommandConfig("openshift-lws-operator", version.Get(), operator.RunOperator, clock.RealClock{}).
+		NewCommandWithContext(ctx)
 	cmd.Use = "operator"
 	cmd.Short = "Start the Cluster LWS Operator"
 
 	return cmd
-}*/
+}

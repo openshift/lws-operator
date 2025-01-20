@@ -19,7 +19,7 @@ package v1alpha1
 import (
 	lwsoperatorv1alpha1 "lws-operator/pkg/apis/lwsoperator/v1alpha1"
 
-	internal "lws-operator/pkg/generated/applyconfiguration/internal"
+	internal "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/internal"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	managedfields "k8s.io/apimachinery/pkg/util/managedfields"
