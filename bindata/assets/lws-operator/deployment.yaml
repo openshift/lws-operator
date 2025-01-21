@@ -20,6 +20,8 @@ spec:
       labels:
         control-plane: controller-manager
     spec:
+      nodeSelector:
+        "node-role.kubernetes.io/control-plane": "false"
       containers:
         - args:
             - --config=/controller_manager_config.yaml
