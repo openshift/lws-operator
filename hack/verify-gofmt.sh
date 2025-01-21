@@ -2,7 +2,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-SECONDARY_SCHEDULER_OPERATOR_ROOT=$(dirname "${BASH_SOURCE}")/..
+LWS_OPERATOR_ROOT=$(dirname "${BASH_SOURCE}")/..
 
 GO_VERSION=($(go version))
 
@@ -11,7 +11,7 @@ if [[ -z $(echo "${GO_VERSION[2]}" | grep -E 'go1.2|go1.3|go1.4|go1.5|go1.6|go1.
   exit 1
 fi
 
-cd "${SECONDARY_SCHEDULER_OPERATOR_ROOT}"
+cd "${LWS_OPERATOR_ROOT}"
 
 find_files() {
   find . -not \( \
