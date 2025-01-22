@@ -18,7 +18,6 @@ package v1alpha1
 
 import (
 	lwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/apis/lwsoperator/v1alpha1"
-
 	labels "k8s.io/apimachinery/pkg/labels"
 	listers "k8s.io/client-go/listers"
 	cache "k8s.io/client-go/tools/cache"

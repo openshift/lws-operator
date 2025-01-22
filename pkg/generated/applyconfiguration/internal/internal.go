@@ -37,7 +37,7 @@ func Parser() *typed.Parser {
 var parserOnce sync.Once
 var parser *typed.Parser
 var schemaYAML = typed.YAMLObject(`types:
-- name: lws-operator.pkg.apis.lwsoperator.v1alpha1.LwsOperator
+- name: com.github.openshift.lws-operator.pkg.apis.lwsoperator.v1alpha1.LwsOperator
   scalar: untyped
   list:
     elementType:

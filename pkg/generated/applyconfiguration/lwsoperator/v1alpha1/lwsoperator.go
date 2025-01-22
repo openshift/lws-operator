@@ -18,7 +18,6 @@ package v1alpha1
 
 import (
 	lwsoperatorv1alpha1 "github.com/openshift/lws-operator/pkg/apis/lwsoperator/v1alpha1"
-
 	internal "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/internal"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -70,7 +69,7 @@ func ExtractLwsOperatorStatus(lwsOperator *lwsoperatorv1alpha1.LwsOperator, fiel
 
 func extractLwsOperator(lwsOperator *lwsoperatorv1alpha1.LwsOperator, fieldManager string, subresource string) (*LwsOperatorApplyConfiguration, error) {
 	b := &LwsOperatorApplyConfiguration{}
-	err := managedfields.ExtractInto(lwsOperator, internal.Parser().Type("lws-operator.pkg.apis.lwsoperator.v1alpha1.LwsOperator"), fieldManager, b, subresource)
+	err := managedfields.ExtractInto(lwsOperator, internal.Parser().Type("com.github.openshift.lws-operator.pkg.apis.lwsoperator.v1alpha1.LwsOperator"), fieldManager, b, subresource)
 	if err != nil {
 		return nil, err
 	}
