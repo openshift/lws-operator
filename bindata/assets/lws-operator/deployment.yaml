@@ -21,7 +21,7 @@ spec:
         control-plane: controller-manager
     spec:
       nodeSelector:
-        "node-role.kubernetes.io/control-plane": "false"
+        "node-role.kubernetes.io/worker": ""
       containers:
         - args:
             - --config=/controller_manager_config.yaml
