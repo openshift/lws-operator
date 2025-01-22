@@ -11,7 +11,7 @@ spec:
       clientConfig:
         service:
           name: lws-webhook-service
-          namespace: openshift-lws-system
+          namespace: openshift-lws-operator
           path: /convert
       conversionReviewVersions:
         - v1

@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: lws-operator
   name: lws-leader-election-rolebinding
-  namespace: openshift-lws-system
+  namespace: openshift-lws-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -14,4 +14,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: openshift-lws-controller-manager
-    namespace: openshift-lws-system
+    namespace: openshift-lws-operator
