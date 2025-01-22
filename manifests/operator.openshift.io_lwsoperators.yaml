@@ -61,12 +61,6 @@ spec:
                   description: managementState indicates whether and how the operator should manage the component
                   type: string
                   pattern: ^(Managed|Unmanaged|Force|Removed)$
-                namespace:
-                  description: |-
-                    Namespace defines the namespace where LWS is created.
-                    This field is optional and if it is not specified,
-                    it defaults to openshift-lws-system
-                  type: string
                 observedConfig:
                   description: |-
                     observedConfig holds a sparse config that controller has observed from the cluster state.  It exists in spec because

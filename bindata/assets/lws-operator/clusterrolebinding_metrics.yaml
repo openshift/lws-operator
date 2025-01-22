@@ -9,4 +9,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: lws-controller-manager
-    namespace: openshift-lws-system
+    namespace: openshift-lws-operator

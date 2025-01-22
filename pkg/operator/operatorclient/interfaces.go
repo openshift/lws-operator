@@ -20,16 +20,15 @@ import (
 	lwsoperatorinterface "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/typed/lwsoperator/v1alpha1"
 )
 
-const OperatorNamespace = "openshift-lws-operator"
 const OperatorConfigName = "cluster"
-const OperandName = "lws-controller-manager"
 
 var _ v1helpers.OperatorClient = &LWSOperatorClient{}
 
 type LWSOperatorClient struct {
-	Ctx            context.Context
-	SharedInformer cache.SharedIndexInformer
-	OperatorClient lwsoperatorinterface.LwsOperatorsV1alpha1Interface
+	Ctx               context.Context
+	SharedInformer    cache.SharedIndexInformer
+	OperatorClient    lwsoperatorinterface.LwsOperatorsV1alpha1Interface
+	OperatorNamespace string
 }
 
 func (l *LWSOperatorClient) Informer() cache.SharedIndexInformer {
@@ -37,7 +36,7 @@ func (l *LWSOperatorClient) Informer() cache.SharedIndexInformer {
 }
 
 func (l *LWSOperatorClient) GetObjectMeta() (meta *metav1.ObjectMeta, err error) {
-	instance, err := l.OperatorClient.LwsOperators(OperatorNamespace).Get(l.Ctx, OperatorConfigName, metav1.GetOptions{})
+	instance, err := l.OperatorClient.LwsOperators(l.OperatorNamespace).Get(l.Ctx, OperatorConfigName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +44,7 @@ func (l *LWSOperatorClient) GetObjectMeta() (meta *metav1.ObjectMeta, err error)
 }
 
 func (l *LWSOperatorClient) GetOperatorState() (spec *operatorv1.OperatorSpec, status *operatorv1.OperatorStatus, resourceVersion string, err error) {
-	instance, err := l.OperatorClient.LwsOperators(OperatorNamespace).Get(l.Ctx, OperatorConfigName, metav1.GetOptions{})
+	instance, err := l.OperatorClient.LwsOperators(l.OperatorNamespace).Get(l.Ctx, OperatorConfigName, metav1.GetOptions{})
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -57,7 +56,7 @@ func (l *LWSOperatorClient) GetOperatorStateWithQuorum(ctx context.Context) (spe
 }
 
 func (l *LWSOperatorClient) UpdateOperatorSpec(ctx context.Context, oldResourceVersion string, in *operatorv1.OperatorSpec) (out *operatorv1.OperatorSpec, newResourceVersion string, err error) {
-	original, err := l.OperatorClient.LwsOperators(OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
+	original, err := l.OperatorClient.LwsOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
 	if err != nil {
 		return nil, "", err
 	}
@@ -65,7 +64,7 @@ func (l *LWSOperatorClient) UpdateOperatorSpec(ctx context.Context, oldResourceV
 	copy.ResourceVersion = oldResourceVersion
 	copy.Spec.OperatorSpec = *in
 
-	ret, err := l.OperatorClient.LwsOperators(OperatorNamespace).Update(ctx, copy, metav1.UpdateOptions{})
+	ret, err := l.OperatorClient.LwsOperators(l.OperatorNamespace).Update(ctx, copy, metav1.UpdateOptions{})
 	if err != nil {
 		return nil, "", err
 	}
@@ -74,7 +73,7 @@ func (l *LWSOperatorClient) UpdateOperatorSpec(ctx context.Context, oldResourceV
 }
 
 func (l *LWSOperatorClient) UpdateOperatorStatus(ctx context.Context, oldResourceVersion string, in *operatorv1.OperatorStatus) (out *operatorv1.OperatorStatus, err error) {
-	original, err := l.OperatorClient.LwsOperators(OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
+	original, err := l.OperatorClient.LwsOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +81,7 @@ func (l *LWSOperatorClient) UpdateOperatorStatus(ctx context.Context, oldResourc
 	copy.ResourceVersion = oldResourceVersion
 	copy.Status.OperatorStatus = *in
 
-	ret, err := l.OperatorClient.LwsOperators(OperatorNamespace).UpdateStatus(ctx, copy, metav1.UpdateOptions{})
+	ret, err := l.OperatorClient.LwsOperators(l.OperatorNamespace).UpdateStatus(ctx, copy, metav1.UpdateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -97,10 +96,10 @@ func (l *LWSOperatorClient) ApplyOperatorSpec(ctx context.Context, fieldManager 
 	desiredSpec := &lwsoperatorv1alpha1.LwsOperatorSpecApplyConfiguration{
 		OperatorSpecApplyConfiguration: *applyConfiguration,
 	}
-	desired := lwsoperatorv1alpha1.LwsOperator(OperatorConfigName, OperatorNamespace)
+	desired := lwsoperatorv1alpha1.LwsOperator(OperatorConfigName, l.OperatorNamespace)
 	desired.WithSpec(desiredSpec)
 
-	instance, err := l.OperatorClient.LwsOperators(OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
+	instance, err := l.OperatorClient.LwsOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
 	switch {
 	case apierrors.IsNotFound(err):
 	// do nothing and proceed with the apply
@@ -116,7 +115,7 @@ func (l *LWSOperatorClient) ApplyOperatorSpec(ctx context.Context, fieldManager 
 		}
 	}
 
-	_, err = l.OperatorClient.LwsOperators(OperatorNamespace).Apply(ctx, desired, metav1.ApplyOptions{
+	_, err = l.OperatorClient.LwsOperators(l.OperatorNamespace).Apply(ctx, desired, metav1.ApplyOptions{
 		Force:        true,
 		FieldManager: fieldManager,
 	})
@@ -135,10 +134,10 @@ func (l *LWSOperatorClient) ApplyOperatorStatus(ctx context.Context, fieldManage
 	desiredStatus := &lwsoperatorv1alpha1.LwsOperatorStatusApplyConfiguration{
 		OperatorStatusApplyConfiguration: *applyConfiguration,
 	}
-	desired := lwsoperatorv1alpha1.LwsOperator(OperatorConfigName, OperatorNamespace)
+	desired := lwsoperatorv1alpha1.LwsOperator(OperatorConfigName, l.OperatorNamespace)
 	desired.WithStatus(desiredStatus)
 
-	instance, err := l.OperatorClient.LwsOperators(OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
+	instance, err := l.OperatorClient.LwsOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
 	switch {
 	case apierrors.IsNotFound(err):
 		// do nothing and proceed with the apply
@@ -160,7 +159,7 @@ func (l *LWSOperatorClient) ApplyOperatorStatus(ctx context.Context, fieldManage
 		}
 	}
 
-	_, err = l.OperatorClient.LwsOperators(OperatorNamespace).ApplyStatus(ctx, desired, metav1.ApplyOptions{
+	_, err = l.OperatorClient.LwsOperators(l.OperatorNamespace).ApplyStatus(ctx, desired, metav1.ApplyOptions{
 		Force:        true,
 		FieldManager: fieldManager,
 	})
@@ -176,6 +175,6 @@ func (l *LWSOperatorClient) PatchOperatorStatus(ctx context.Context, jsonPatch *
 	if err != nil {
 		return err
 	}
-	_, err = l.OperatorClient.LwsOperators(OperatorNamespace).Patch(ctx, OperatorConfigName, types.JSONPatchType, jsonPatchBytes, metav1.PatchOptions{}, "/status")
+	_, err = l.OperatorClient.LwsOperators(l.OperatorNamespace).Patch(ctx, OperatorConfigName, types.JSONPatchType, jsonPatchBytes, metav1.PatchOptions{}, "/status")
 	return err
 }

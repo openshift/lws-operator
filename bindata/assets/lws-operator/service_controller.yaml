@@ -5,7 +5,7 @@ metadata:
     app.kubernetes.io/name: lws-operator
     control-plane: controller-manager
   name: lws-controller-manager-metrics-service
-  namespace: openshift-lws-system
+  namespace: openshift-lws-operator
 spec:
   ports:
     - name: https
