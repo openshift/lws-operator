@@ -1,11 +1,7 @@
 reviewers:
   - ardaguclu
-  #- atiratree
-  #- kannon92
-  #- mrunalp
+  - atiratree
 approvers:
   - ardaguclu
-  #- atiratree
-  #- kannon92
-  #- mrunalp
+  - atiratree
 component: "lws-operator"
