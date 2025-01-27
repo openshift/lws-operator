@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/created-by: lws-operator
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/part-of: lws-operator
+  name: lws-metrics-reader
+rules:
+  - nonResourceURLs:
+      - /metrics
+    verbs:
+      - get
