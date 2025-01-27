@@ -2,15 +2,17 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    app.kubernetes.io/created-by: lws-operator
+    app.kubernetes.io/created-by: lws
+    app.kubernetes.io/instance: proxy-rolebinding
+    app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: clusterrolebinding
-    app.kubernetes.io/part-of: lws-operator
+    app.kubernetes.io/part-of: lws
   name: lws-proxy-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: lws-proxy-role
 subjects:
-  - kind: ServiceAccount
-    name: lws-controller-manager
-    namespace: openshift-lws-operator
+- kind: ServiceAccount
+  name: lws-controller-manager
+  namespace: openshift-lws-operator

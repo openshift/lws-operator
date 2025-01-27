@@ -1,11 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  labels:
-    app.kubernetes.io/created-by: lws-operator
-    app.kubernetes.io/name: role
-    app.kubernetes.io/part-of: lws-operator
-  name: lws-leader-election-role
+  name: openshift-lws-operator-operand
   namespace: openshift-lws-operator
 rules:
   - apiGroups:
@@ -39,3 +35,29 @@ rules:
     verbs:
       - create
       - patch
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - endpoints
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch

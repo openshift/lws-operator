@@ -16,7 +16,7 @@ func NewOperator(ctx context.Context) *cobra.Command {
 		NewControllerCommandConfig("openshift-lws-operator", version.Get(), operator.RunOperator, clock.RealClock{}).
 		NewCommandWithContext(ctx)
 	cmd.Use = "operator"
-	cmd.Short = "Start the Cluster LWS Operator"
+	cmd.Short = "Start the Cluster LeaderWorkerSet Operator"
 
 	return cmd
 }

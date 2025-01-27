@@ -1,12 +1,13 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
-  name: lws-metrics-reader-rolebinding
+  name: openshift-lws-operator
+  namespace: openshift-lws-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: lws-metrics-reader
+  kind: Role
+  name: openshift-lws-operator
 subjects:
   - kind: ServiceAccount
-    name: lws-controller-manager
+    name: openshift-lws-operator
     namespace: openshift-lws-operator

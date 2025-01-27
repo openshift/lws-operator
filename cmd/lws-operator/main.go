@@ -24,7 +24,7 @@ func main() {
 func NewLWSOperatorCommand(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lws-operator",
-		Short: "OpenShift cluster LWS operator",
+		Short: "OpenShift cluster LeaderWorkerSet operator",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := cmd.Help()
 			if err != nil {

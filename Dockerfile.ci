@@ -13,3 +13,4 @@ LABEL io.k8s.display-name="Leader Worker Set" \
       io.openshift.tags="openshift,lws-operator" \
       com.redhat.delivery.appregistry=true \
       maintainer="AOS workloads team, <aos-workloads-staff@redhat.com>"
+
