@@ -272,7 +272,7 @@ func (c *TargetConfigReconciler) manageRoleBinding(leaderWorkerSetOperator *lead
 	}
 	controller.EnsureOwnerRef(required, ownerReference)
 
-	for i, _ := range required.Subjects {
+	for i := range required.Subjects {
 		required.Subjects[i].Namespace = c.namespace
 	}
 
@@ -357,7 +357,7 @@ func (c *TargetConfigReconciler) manageClusterRoleBindingManager(leaderWorkerSet
 	}
 	controller.EnsureOwnerRef(required, ownerReference)
 
-	for i, _ := range required.Subjects {
+	for i := range required.Subjects {
 		required.Subjects[i].Namespace = c.namespace
 	}
 
@@ -377,7 +377,7 @@ func (c *TargetConfigReconciler) manageClusterRoleBindingMetrics(leaderWorkerSet
 	}
 	controller.EnsureOwnerRef(required, ownerReference)
 
-	for i, _ := range required.Subjects {
+	for i := range required.Subjects {
 		required.Subjects[i].Namespace = c.namespace
 	}
 
@@ -397,7 +397,7 @@ func (c *TargetConfigReconciler) manageClusterRoleBindingProxy(leaderWorkerSetOp
 	}
 	controller.EnsureOwnerRef(required, ownerReference)
 
-	for i, _ := range required.Subjects {
+	for i := range required.Subjects {
 		required.Subjects[i].Namespace = c.namespace
 	}
 
@@ -491,7 +491,7 @@ func (c *TargetConfigReconciler) manageMutatingWebhook(leaderWorkerSetOperator *
 	}
 	controller.EnsureOwnerRef(required, ownerReference)
 
-	for i, _ := range required.Webhooks {
+	for i := range required.Webhooks {
 		if required.Webhooks[i].ClientConfig.Service != nil {
 			required.Webhooks[i].ClientConfig.Service.Namespace = c.namespace
 		}
@@ -513,7 +513,7 @@ func (c *TargetConfigReconciler) manageValidatingWebhook(leaderWorkerSetOperator
 	}
 	controller.EnsureOwnerRef(required, ownerReference)
 
-	for i, _ := range required.Webhooks {
+	for i := range required.Webhooks {
 		if required.Webhooks[i].ClientConfig.Service != nil {
 			required.Webhooks[i].ClientConfig.Service.Namespace = c.namespace
 		}
