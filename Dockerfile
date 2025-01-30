@@ -9,10 +9,10 @@ RUN mkdir /licenses
 COPY --from=builder /go/src/github.com/openshift/lws-operator/LICENSE /licenses/.
 
 LABEL com.redhat.component="Leader Worker Set"
-LABEL description="LWS Operator manages the Leader Worker Set."
+LABEL description="LeaderWorkerSet Operator manages the Leader Worker Set."
 LABEL name="lws-operator"
-LABEL summary="LWS Operator manages the Leader Worker Set."
-LABEL io.k8s.display-name="LWS Operator" \
+LABEL summary="LeaderWorkerSet Operator manages the Leader Worker Set."
+LABEL io.k8s.display-name="LeaderWorkerSet Operator" \
       io.k8s.description="This is an operator to manage Leader Worker Set" \
       io.openshift.tags="openshift,lws-operator" \
       com.redhat.delivery.appregistry=true \

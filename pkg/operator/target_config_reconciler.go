@@ -157,12 +157,6 @@ func (c *TargetConfigReconciler) sync() error {
 		return err
 	}
 
-	deployment, _, err := c.manageDeployments(leaderWorkerSetOperator)
-	if err != nil {
-		klog.Errorf("unable to manage deployment err: %v", err)
-		return err
-	}
-
 	_, _, err = c.manageServiceAccount(leaderWorkerSetOperator)
 	if err != nil {
 		klog.Errorf("unable to manage service account err: %v", err)
@@ -196,6 +190,12 @@ func (c *TargetConfigReconciler) sync() error {
 	_, err = c.manageServiceMonitor(leaderWorkerSetOperator)
 	if err != nil {
 		klog.Errorf("unable to manage service account err: %v", err)
+		return err
+	}
+
+	deployment, _, err := c.manageDeployments(leaderWorkerSetOperator)
+	if err != nil {
+		klog.Errorf("unable to manage deployment err: %v", err)
 		return err
 	}
 
@@ -525,6 +525,18 @@ func (c *TargetConfigReconciler) manageValidatingWebhook(leaderWorkerSetOperator
 func (c *TargetConfigReconciler) manageServiceMonitor(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (bool, error) {
 	required := resourceread.ReadUnstructuredOrDie(bindata.MustAsset("assets/lws-operator/servicemonitor.yaml"))
 	required.SetNamespace(c.namespace)
+
+	ownerReference := metav1.OwnerReference{
+		APIVersion: "operator.openshift.io/v1",
+		Kind:       "LeaderWorkerSetOperator",
+		Name:       leaderWorkerSetOperator.Name,
+		UID:        leaderWorkerSetOperator.UID,
+	}
+	required.SetOwnerReferences([]metav1.OwnerReference{
+		ownerReference,
+	})
+	controller.EnsureOwnerRef(required, ownerReference)
+
 	_, changed, err := resourceapply.ApplyKnownUnstructured(c.ctx, c.dynamicClient, c.eventRecorder, required)
 	return changed, err
 }

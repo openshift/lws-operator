@@ -14,7 +14,6 @@ endif
 include $(addprefix ./vendor/github.com/openshift/build-machinery-go/make/, \
 	golang.mk \
 	targets/openshift/images.mk \
-	targets/openshift/codegen.mk \
 	targets/openshift/deps.mk \
 	targets/openshift/crd-schema-gen.mk \
 )
@@ -24,10 +23,6 @@ GO_TEST_PACKAGES :=./pkg/... ./cmd/...
 GO_BUILD_FLAGS :=-tags strictfipsruntime
 
 IMAGE_REGISTRY := registry.ci.openshift.org
-
-CODEGEN_OUTPUT_PACKAGE :=github.com/openshift/lws-operator/pkg/generated
-CODEGEN_API_PACKAGE :=github.com/openshift/lws-operator/pkg/apis
-CODEGEN_GROUPS_VERSION :=leaderworkersetoperator:v1
 
 # This will call a macro called "build-image" which will generate image specific targets based on the parameters:
 # $0 - macro name
@@ -39,13 +34,12 @@ $(call build-image,ocp-lws-operator,$(IMAGE_REGISTRY)/ocp/4.19:lws-operator, ./D
 
 $(call verify-golang-versions,Dockerfile)
 
-$(call add-crd-gen,leaderworkersetoperator,./pkg/apis/leaderworkersetoperator/v1,./manifests/,./manifests/)
-
 regen-crd:
 	go build -o _output/tools/bin/controller-gen ./vendor/sigs.k8s.io/controller-tools/cmd/controller-gen
-	cp manifests/operator.openshift.io_leaderworkersetoperators.yaml manifests/leaderworkerset-operator.crd.yaml
+	rm manifests/leaderworkerset-operator.crd.yaml
 	./_output/tools/bin/controller-gen crd paths=./pkg/apis/leaderworkersetoperator/v1/... schemapatch:manifests=./manifests output:crd:dir=./manifests
-	mv manifests/leaderworkerset-operator.crd.yaml manifests/operator.openshift.io_leaderworkersetoperators.yaml
+	mv manifests/operator.openshift.io_leaderworkersetoperators.yaml manifests/leaderworkerset-operator.crd.yaml
+	cp manifests/operator.openshift.io_leaderworkersetoperators.yaml deploy/00_lws-operator.crd.yaml
 
 generate: update-codegen-crds generate-clients
 .PHONY: generate

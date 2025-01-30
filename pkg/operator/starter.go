@@ -19,7 +19,6 @@ import (
 )
 
 const (
-	podNamespaceEnv   = "POD_NAMESPACE"
 	operatorNamespace = "openshift-lws-operator"
 	workQueueKey      = "key"
 )
@@ -46,7 +45,11 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	}
 	operatorConfigInformers := operatorclientinformers.NewSharedInformerFactory(operatorConfigClient, 10*time.Minute)
 
-	namespace := getNamespace()
+	namespace := cc.OperatorNamespace
+	if namespace == "openshift-config-managed" {
+		// we need to fall back to our default namespace rather than library-go's.
+		namespace = operatorNamespace
+	}
 
 	leaderWorkerSetOperatorClient := &operatorclient.LeaderWorkerSetClient{
 		Ctx:               ctx,
@@ -80,15 +83,4 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 
 	<-ctx.Done()
 	return nil
-}
-
-// getNamespace returns in-cluster namespace
-func getNamespace() string {
-	if nsBytes, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"); err == nil {
-		return string(nsBytes)
-	}
-	if podNamespace := os.Getenv(podNamespaceEnv); len(podNamespace) > 0 {
-		return podNamespace
-	}
-	return operatorNamespace
 }
