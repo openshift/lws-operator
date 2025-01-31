@@ -81,119 +81,126 @@ func NewTargetConfigReconciler(
 func (c *TargetConfigReconciler) sync() error {
 	leaderWorkerSetOperator, err := c.operatorClient.Get(c.ctx, operatorclient.OperatorConfigName, metav1.GetOptions{})
 	if err != nil {
-		klog.ErrorS(err, "unable to get operator configuration", "namespace", c.namespace, "openshift-lws-operator", operatorclient.OperatorConfigName)
+		klog.ErrorS(err, "unable to get operator configuration", "namespace", c.namespace, "lws", operatorclient.OperatorConfigName)
 		return err
 	}
 
-	_, _, err = c.manageClusterRoleManager(leaderWorkerSetOperator)
+	ownerReference := metav1.OwnerReference{
+		APIVersion: "operator.openshift.io/v1",
+		Kind:       "LeaderWorkerSetOperator",
+		Name:       leaderWorkerSetOperator.Name,
+		UID:        leaderWorkerSetOperator.UID,
+	}
+
+	_, _, err = c.manageClusterRoleManager(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage manager cluster role err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageClusterRoleMetrics(leaderWorkerSetOperator)
+	_, _, err = c.manageClusterRoleMetrics(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage metrics cluster role err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageClusterRoleProxy(leaderWorkerSetOperator)
+	_, _, err = c.manageClusterRoleProxy(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage proxy cluster role err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageClusterRoleBindingManager(leaderWorkerSetOperator)
+	_, _, err = c.manageClusterRoleBindingManager(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage manager cluster role binding err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageClusterRoleBindingMetrics(leaderWorkerSetOperator)
+	_, _, err = c.manageClusterRoleBindingMetrics(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage metrics cluster role binding err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageClusterRoleBindingProxy(leaderWorkerSetOperator)
+	_, _, err = c.manageClusterRoleBindingProxy(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage proxy cluster role binding err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageRole(leaderWorkerSetOperator)
+	_, _, err = c.manageRole(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage cluster role err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageRoleMonitoring(leaderWorkerSetOperator)
+	_, _, err = c.manageRoleMonitoring(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage cluster role err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageRoleBinding(leaderWorkerSetOperator)
+	_, _, err = c.manageRoleBinding(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage cluster role binding err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageRoleBindingMonitoring(leaderWorkerSetOperator)
+	_, _, err = c.manageRoleBindingMonitoring(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage cluster role binding err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageConfigmap(leaderWorkerSetOperator)
+	_, _, err = c.manageConfigmap(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage configmap err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageCustomResourceDefinition(leaderWorkerSetOperator)
+	_, _, err = c.manageCustomResourceDefinition(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage leaderworkerset CRD err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageServiceAccount(leaderWorkerSetOperator)
+	_, _, err = c.manageServiceAccount(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage service account err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageServiceController(leaderWorkerSetOperator)
+	_, _, err = c.manageServiceController(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage service err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageServiceWebhook(leaderWorkerSetOperator)
+	_, _, err = c.manageServiceWebhook(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage service err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageMutatingWebhook(leaderWorkerSetOperator)
+	_, _, err = c.manageMutatingWebhook(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage service err: %v", err)
 		return err
 	}
 
-	_, _, err = c.manageValidatingWebhook(leaderWorkerSetOperator)
+	_, _, err = c.manageValidatingWebhook(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage service err: %v", err)
 		return err
 	}
 
-	_, err = c.manageServiceMonitor(leaderWorkerSetOperator)
+	_, err = c.manageServiceMonitor(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage service account err: %v", err)
 		return err
 	}
 
-	deployment, _, err := c.manageDeployments(leaderWorkerSetOperator)
+	deployment, _, err := c.manageDeployments(leaderWorkerSetOperator, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage deployment err: %v", err)
 		return err
@@ -207,32 +214,33 @@ func (c *TargetConfigReconciler) sync() error {
 	return err
 }
 
-func (c *TargetConfigReconciler) manageConfigmap(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*v1.ConfigMap, bool, error) {
-	required := resourceread.ReadConfigMapV1OrDie(bindata.MustAsset("assets/lws-operator/configmap.yaml"))
+func (c *TargetConfigReconciler) manageConfigmap(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*v1.ConfigMap, bool, error) {
+	configData := bindata.MustAsset("assets/lws-controller-config/config.yaml")
+	required := resourceread.ReadConfigMapV1OrDie(bindata.MustAsset("assets/lws-controller/configmap.yaml"))
 	required.Namespace = c.namespace
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
+	required.Data = map[string]string{
+		"controller_manager_config.yaml": string(configData),
+	}
 
 	return resourceapply.ApplyConfigMap(c.ctx, c.kubeClient.CoreV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageRole(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*rbacv1.Role, bool, error) {
-	required := resourceread.ReadRoleV1OrDie(bindata.MustAsset("assets/lws-operator/role.yaml"))
+func (c *TargetConfigReconciler) manageRole(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*rbacv1.Role, bool, error) {
+	required := resourceread.ReadRoleV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_clusterrole_lws-manager-role.yaml"))
 	required.Namespace = c.namespace
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
+	required.OwnerReferences = []metav1.OwnerReference{
+		ownerReference,
 	}
+
+	return resourceapply.ApplyRole(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
+}
+
+func (c *TargetConfigReconciler) manageRoleMonitoring(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*rbacv1.Role, bool, error) {
+	required := resourceread.ReadRoleV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_role_lws-prometheus-k8s.yaml"))
+	required.Namespace = c.namespace
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
@@ -241,36 +249,12 @@ func (c *TargetConfigReconciler) manageRole(leaderWorkerSetOperator *leaderworke
 	return resourceapply.ApplyRole(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageRoleMonitoring(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*rbacv1.Role, bool, error) {
-	required := resourceread.ReadRoleV1OrDie(bindata.MustAsset("assets/lws-operator/role_prometheus.yaml"))
+func (c *TargetConfigReconciler) manageRoleBinding(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*rbacv1.RoleBinding, bool, error) {
+	required := resourceread.ReadRoleBindingV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_rolebinding_lws-leader-election-rolebinding.yaml"))
 	required.Namespace = c.namespace
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
-
-	return resourceapply.ApplyRole(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
-}
-
-func (c *TargetConfigReconciler) manageRoleBinding(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*rbacv1.RoleBinding, bool, error) {
-	required := resourceread.ReadRoleBindingV1OrDie(bindata.MustAsset("assets/lws-operator/rolebinding.yaml"))
-	required.Namespace = c.namespace
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
-	required.OwnerReferences = []metav1.OwnerReference{
-		ownerReference,
-	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	for i := range required.Subjects {
 		required.Subjects[i].Namespace = c.namespace
@@ -279,83 +263,48 @@ func (c *TargetConfigReconciler) manageRoleBinding(leaderWorkerSetOperator *lead
 	return resourceapply.ApplyRoleBinding(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageRoleBindingMonitoring(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*rbacv1.RoleBinding, bool, error) {
-	required := resourceread.ReadRoleBindingV1OrDie(bindata.MustAsset("assets/lws-operator/rolebinding_prometheus.yaml"))
+func (c *TargetConfigReconciler) manageRoleBindingMonitoring(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*rbacv1.RoleBinding, bool, error) {
+	required := resourceread.ReadRoleBindingV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_rolebinding_lws-prometheus-k8s.yaml"))
 	required.Namespace = c.namespace
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	return resourceapply.ApplyRoleBinding(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageClusterRoleManager(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*rbacv1.ClusterRole, bool, error) {
-	required := resourceread.ReadClusterRoleV1OrDie(bindata.MustAsset("assets/lws-operator/clusterrole_manager.yaml"))
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
+func (c *TargetConfigReconciler) manageClusterRoleManager(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*rbacv1.ClusterRole, bool, error) {
+	required := resourceread.ReadClusterRoleV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_clusterrole_lws-manager-role.yaml"))
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	return resourceapply.ApplyClusterRole(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageClusterRoleMetrics(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*rbacv1.ClusterRole, bool, error) {
-	required := resourceread.ReadClusterRoleV1OrDie(bindata.MustAsset("assets/lws-operator/clusterrole_metrics.yaml"))
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
+func (c *TargetConfigReconciler) manageClusterRoleMetrics(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*rbacv1.ClusterRole, bool, error) {
+	required := resourceread.ReadClusterRoleV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_clusterrole_lws-metrics-reader.yaml"))
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	return resourceapply.ApplyClusterRole(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageClusterRoleProxy(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*rbacv1.ClusterRole, bool, error) {
-	required := resourceread.ReadClusterRoleV1OrDie(bindata.MustAsset("assets/lws-operator/clusterrole_proxy.yaml"))
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
+func (c *TargetConfigReconciler) manageClusterRoleProxy(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*rbacv1.ClusterRole, bool, error) {
+	required := resourceread.ReadClusterRoleV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_clusterrole_lws-proxy-role.yaml"))
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	return resourceapply.ApplyClusterRole(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageClusterRoleBindingManager(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*rbacv1.ClusterRoleBinding, bool, error) {
-	required := resourceread.ReadClusterRoleBindingV1OrDie(bindata.MustAsset("assets/lws-operator/clusterrolebinding_manager.yaml"))
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
+func (c *TargetConfigReconciler) manageClusterRoleBindingManager(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*rbacv1.ClusterRoleBinding, bool, error) {
+	required := resourceread.ReadClusterRoleBindingV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_clusterrolebinding_lws-manager-rolebinding.yaml"))
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	for i := range required.Subjects {
 		required.Subjects[i].Namespace = c.namespace
@@ -364,18 +313,11 @@ func (c *TargetConfigReconciler) manageClusterRoleBindingManager(leaderWorkerSet
 	return resourceapply.ApplyClusterRoleBinding(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageClusterRoleBindingMetrics(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*rbacv1.ClusterRoleBinding, bool, error) {
-	required := resourceread.ReadClusterRoleBindingV1OrDie(bindata.MustAsset("assets/lws-operator/clusterrolebinding_metrics.yaml"))
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
+func (c *TargetConfigReconciler) manageClusterRoleBindingMetrics(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*rbacv1.ClusterRoleBinding, bool, error) {
+	required := resourceread.ReadClusterRoleBindingV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_clusterrolebinding_lws-metrics-reader-rolebinding.yaml"))
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	for i := range required.Subjects {
 		required.Subjects[i].Namespace = c.namespace
@@ -384,18 +326,11 @@ func (c *TargetConfigReconciler) manageClusterRoleBindingMetrics(leaderWorkerSet
 	return resourceapply.ApplyClusterRoleBinding(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageClusterRoleBindingProxy(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*rbacv1.ClusterRoleBinding, bool, error) {
-	required := resourceread.ReadClusterRoleBindingV1OrDie(bindata.MustAsset("assets/lws-operator/clusterrolebinding_proxy.yaml"))
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
+func (c *TargetConfigReconciler) manageClusterRoleBindingProxy(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*rbacv1.ClusterRoleBinding, bool, error) {
+	required := resourceread.ReadClusterRoleBindingV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_clusterrolebinding_lws-proxy-rolebinding.yaml"))
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	for i := range required.Subjects {
 		required.Subjects[i].Namespace = c.namespace
@@ -404,69 +339,41 @@ func (c *TargetConfigReconciler) manageClusterRoleBindingProxy(leaderWorkerSetOp
 	return resourceapply.ApplyClusterRoleBinding(c.ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageServiceController(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*v1.Service, bool, error) {
-	required := resourceread.ReadServiceV1OrDie(bindata.MustAsset("assets/lws-operator/service_controller.yaml"))
+func (c *TargetConfigReconciler) manageServiceController(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*v1.Service, bool, error) {
+	required := resourceread.ReadServiceV1OrDie(bindata.MustAsset("assets/lws-controller-generated/v1_service_lws-controller-manager-metrics-service.yaml"))
 	required.Namespace = c.namespace
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	return resourceapply.ApplyService(c.ctx, c.kubeClient.CoreV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageServiceWebhook(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*v1.Service, bool, error) {
-	required := resourceread.ReadServiceV1OrDie(bindata.MustAsset("assets/lws-operator/service_webhook.yaml"))
+func (c *TargetConfigReconciler) manageServiceWebhook(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*v1.Service, bool, error) {
+	required := resourceread.ReadServiceV1OrDie(bindata.MustAsset("assets/lws-controller-generated/v1_service_lws-webhook-service.yaml"))
 	required.Namespace = c.namespace
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	return resourceapply.ApplyService(c.ctx, c.kubeClient.CoreV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageServiceAccount(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*v1.ServiceAccount, bool, error) {
-	required := resourceread.ReadServiceAccountV1OrDie(bindata.MustAsset("assets/lws-operator/serviceaccount.yaml"))
+func (c *TargetConfigReconciler) manageServiceAccount(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*v1.ServiceAccount, bool, error) {
+	required := resourceread.ReadServiceAccountV1OrDie(bindata.MustAsset("assets/lws-controller-generated/v1_serviceaccount_lws-controller-manager.yaml"))
 	required.Namespace = c.namespace
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	return resourceapply.ApplyServiceAccount(c.ctx, c.kubeClient.CoreV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageCustomResourceDefinition(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*apiextensionv1.CustomResourceDefinition, bool, error) {
-	required := resourceread.ReadCustomResourceDefinitionV1OrDie(bindata.MustAsset("assets/lws-operator/leaderworkerset.x-k8s.io_leaderworkersets.yaml"))
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
+func (c *TargetConfigReconciler) manageCustomResourceDefinition(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*apiextensionv1.CustomResourceDefinition, bool, error) {
+	required := resourceread.ReadCustomResourceDefinitionV1OrDie(bindata.MustAsset("assets/lws-controller-generated/apiextensions.k8s.io_v1_customresourcedefinition_leaderworkersets.leaderworkerset.x-k8s.io.yaml"))
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	if required.Spec.Conversion != nil &&
 		required.Spec.Conversion.Webhook != nil &&
@@ -478,18 +385,11 @@ func (c *TargetConfigReconciler) manageCustomResourceDefinition(leaderWorkerSetO
 	return resourceapply.ApplyCustomResourceDefinitionV1(c.ctx, c.apiextensionClient.ApiextensionsV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageMutatingWebhook(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*admissionv1.MutatingWebhookConfiguration, bool, error) {
-	required := resourceread.ReadMutatingWebhookConfigurationV1OrDie(bindata.MustAsset("assets/lws-operator/mutatingwebhook.yaml"))
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
+func (c *TargetConfigReconciler) manageMutatingWebhook(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*admissionv1.MutatingWebhookConfiguration, bool, error) {
+	required := resourceread.ReadMutatingWebhookConfigurationV1OrDie(bindata.MustAsset("assets/lws-controller-generated/admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_lws-mutating-webhook-configuration.yaml"))
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	for i := range required.Webhooks {
 		if required.Webhooks[i].ClientConfig.Service != nil {
@@ -500,18 +400,11 @@ func (c *TargetConfigReconciler) manageMutatingWebhook(leaderWorkerSetOperator *
 	return resourceapply.ApplyMutatingWebhookConfigurationImproved(c.ctx, c.kubeClient.AdmissionregistrationV1(), c.eventRecorder, required, resourceapply.NewResourceCache())
 }
 
-func (c *TargetConfigReconciler) manageValidatingWebhook(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*admissionv1.ValidatingWebhookConfiguration, bool, error) {
-	required := resourceread.ReadValidatingWebhookConfigurationV1OrDie(bindata.MustAsset("assets/lws-operator/validatingwebhook.yaml"))
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
+func (c *TargetConfigReconciler) manageValidatingWebhook(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*admissionv1.ValidatingWebhookConfiguration, bool, error) {
+	required := resourceread.ReadValidatingWebhookConfigurationV1OrDie(bindata.MustAsset("assets/lws-controller-generated/admissionregistration.k8s.io_v1_validatingwebhookconfiguration_lws-validating-webhook-configuration.yaml"))
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	for i := range required.Webhooks {
 		if required.Webhooks[i].ClientConfig.Service != nil {
@@ -522,42 +415,33 @@ func (c *TargetConfigReconciler) manageValidatingWebhook(leaderWorkerSetOperator
 	return resourceapply.ApplyValidatingWebhookConfigurationImproved(c.ctx, c.kubeClient.AdmissionregistrationV1(), c.eventRecorder, required, resourceapply.NewResourceCache())
 }
 
-func (c *TargetConfigReconciler) manageServiceMonitor(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (bool, error) {
-	required := resourceread.ReadUnstructuredOrDie(bindata.MustAsset("assets/lws-operator/servicemonitor.yaml"))
+func (c *TargetConfigReconciler) manageServiceMonitor(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (bool, error) {
+	required := resourceread.ReadUnstructuredOrDie(bindata.MustAsset("assets/lws-controller-generated/monitoring.coreos.com_v1_servicemonitor_lws-controller-manager-metrics-monitor.yaml"))
 	required.SetNamespace(c.namespace)
-
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
 	required.SetOwnerReferences([]metav1.OwnerReference{
 		ownerReference,
 	})
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	_, changed, err := resourceapply.ApplyKnownUnstructured(c.ctx, c.dynamicClient, c.eventRecorder, required)
 	return changed, err
 }
 
-func (c *TargetConfigReconciler) manageDeployments(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*appsv1.Deployment, bool, error) {
-	required := resourceread.ReadDeploymentV1OrDie(bindata.MustAsset("assets/lws-operator/deployment.yaml"))
+func (c *TargetConfigReconciler) manageDeployments(leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator, ownerReference metav1.OwnerReference) (*appsv1.Deployment, bool, error) {
+	required := resourceread.ReadDeploymentV1OrDie(bindata.MustAsset("assets/lws-controller-generated/apps_v1_deployment_lws-controller-manager.yaml"))
 	required.Namespace = c.namespace
-	ownerReference := metav1.OwnerReference{
-		APIVersion: "operator.openshift.io/v1",
-		Kind:       "LeaderWorkerSetOperator",
-		Name:       leaderWorkerSetOperator.Name,
-		UID:        leaderWorkerSetOperator.UID,
-	}
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
+
+	// Update image
+	// Update annotations
+	// Use -      nodeSelector:
+	//-        "node-role.kubernetes.io/worker": ""
+	// Add volumemounts
 
 	if c.targetImage != "" {
 		images := map[string]string{
-			"${IMAGE}": c.targetImage,
+			"${CONTROLLER_IMAGE}": c.targetImage,
 		}
 
 		for i := range required.Spec.Template.Spec.Containers {
