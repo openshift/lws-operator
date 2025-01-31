@@ -12,6 +12,7 @@ import (
 
 	"github.com/openshift/library-go/pkg/controller/controllercmd"
 	"github.com/openshift/library-go/pkg/operator/loglevel"
+	"github.com/openshift/library-go/pkg/operator/v1helpers"
 
 	operatorconfigclient "github.com/openshift/lws-operator/pkg/generated/clientset/versioned"
 	operatorclientinformers "github.com/openshift/lws-operator/pkg/generated/informers/externalversions"
@@ -20,7 +21,6 @@ import (
 
 const (
 	operatorNamespace = "openshift-lws-operator"
-	workQueueKey      = "key"
 )
 
 func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error {
@@ -51,6 +51,11 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 		namespace = operatorNamespace
 	}
 
+	kubeInformersForNamespaces := v1helpers.NewKubeInformersForNamespaces(kubeClient,
+		"",
+		cc.OperatorNamespace,
+	)
+
 	leaderWorkerSetOperatorClient := &operatorclient.LeaderWorkerSetClient{
 		Ctx:               ctx,
 		SharedInformer:    operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators().Informer(),
@@ -60,11 +65,11 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	}
 
 	targetConfigReconciler := NewTargetConfigReconciler(
-		ctx,
 		os.Getenv("RELATED_IMAGE_OPERAND_IMAGE"),
 		namespace,
 		operatorConfigClient.OpenShiftOperatorV1().LeaderWorkerSetOperators(namespace),
 		operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators(),
+		kubeInformersForNamespaces,
 		leaderWorkerSetOperatorClient,
 		dynamicClient,
 		kubeClient,
@@ -76,11 +81,12 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 
 	klog.Infof("Starting informers")
 	operatorConfigInformers.Start(ctx.Done())
+	kubeInformersForNamespaces.Start(ctx.Done())
 
 	klog.Infof("Starting log level controller")
 	go logLevelController.Run(ctx, 1)
 	klog.Infof("Starting target config reconciler")
-	go targetConfigReconciler.Run(1, ctx.Done())
+	go targetConfigReconciler.Run(ctx, 1)
 
 	<-ctx.Done()
 	return nil
