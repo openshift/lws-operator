@@ -12,8 +12,11 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextclientv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
@@ -39,6 +42,7 @@ type TargetConfigReconciler struct {
 	targetImage                   string
 	operatorClient                leaderworkersetoperatorv1clientset.LeaderWorkerSetOperatorInterface
 	dynamicClient                 dynamic.Interface
+	discoveryClient               discovery.DiscoveryInterface
 	leaderWorkerSetOperatorClient *operatorclient.LeaderWorkerSetClient
 	kubeClient                    kubernetes.Interface
 	apiextensionClient            *apiextclientv1.Clientset
@@ -56,6 +60,7 @@ func NewTargetConfigReconciler(
 	kubeInformersForNamespaces v1helpers.KubeInformersForNamespaces,
 	leaderWorkerSetOperatorClient *operatorclient.LeaderWorkerSetClient,
 	dynamicClient dynamic.Interface,
+	discoveryClient discovery.DiscoveryInterface,
 	kubeClient kubernetes.Interface,
 	apiExtensionClient *apiextclientv1.Clientset,
 	eventRecorder events.Recorder,
@@ -65,6 +70,7 @@ func NewTargetConfigReconciler(
 		dynamicClient:                 dynamicClient,
 		leaderWorkerSetOperatorClient: leaderWorkerSetOperatorClient,
 		kubeClient:                    kubeClient,
+		discoveryClient:               discoveryClient,
 		apiextensionClient:            apiExtensionClient,
 		eventRecorder:                 eventRecorder,
 		kubeInformersForNamespaces:    kubeInformersForNamespaces,
@@ -82,6 +88,20 @@ func NewTargetConfigReconciler(
 }
 
 func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncContext) error {
+	found, err := isResourceRegistered(c.discoveryClient, schema.GroupVersionKind{
+		Group:   "cert-manager.io",
+		Version: "v1",
+		Kind:    "Issuer",
+	})
+	if err != nil {
+		klog.Errorf("unable to check cert-manager is installed: %v", err)
+		return err
+	}
+	if !found {
+		klog.Errorf("please make sure that cert-manager is installed")
+		return fmt.Errorf("please make sure that cert-manager is installed on your cluster")
+	}
+
 	leaderWorkerSetOperator, err := c.operatorClient.Get(ctx, operatorclient.OperatorConfigName, metav1.GetOptions{})
 	if err != nil {
 		klog.ErrorS(err, "unable to get operator configuration", "namespace", c.namespace, "lws", operatorclient.OperatorConfigName)
@@ -97,6 +117,18 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 
 	specAnnotations := map[string]string{
 		"leaderworkersetoperator.operator.openshift.io/cluster": strconv.FormatInt(leaderWorkerSetOperator.Generation, 10),
+	}
+
+	_, _, err = c.manageIssuerCR(ctx, leaderWorkerSetOperator)
+	if err != nil {
+		klog.Errorf("unable to manage issuer err: %v", err)
+		return err
+	}
+
+	_, _, err = c.manageCertificateWebhookCR(ctx, leaderWorkerSetOperator)
+	if err != nil {
+		klog.Errorf("unable to manage webhook certificate err: %v", err)
+		return err
 	}
 
 	_, _, err = c.manageClusterRoleManager(ctx, ownerReference)
@@ -347,6 +379,76 @@ func (c *TargetConfigReconciler) manageClusterRoleBindingProxy(ctx context.Conte
 	return resourceapply.ApplyClusterRoleBinding(ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
+func (c *TargetConfigReconciler) manageIssuerCR(ctx context.Context, leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*unstructured.Unstructured, bool, error) {
+	gvr := schema.GroupVersionResource{
+		Group:    "cert-manager.io",
+		Version:  "v1",
+		Resource: "issuers",
+	}
+
+	required := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "cert-manager.io/v1",
+			"kind":       "Issuer",
+			"metadata": map[string]interface{}{
+				"ownerReferences": []interface{}{
+					map[string]interface{}{
+						"apiVersion": "operator.openshift.io/v1",
+						"kind":       "LeaderWorkerSetOperator",
+						"name":       leaderWorkerSetOperator.Name,
+						"uid":        string(leaderWorkerSetOperator.UID),
+					},
+				},
+				"name":      "selfsigned",
+				"namespace": c.namespace,
+			},
+			"spec": map[string]interface{}{
+				"selfSigned": map[string]interface{}{},
+			},
+		},
+	}
+
+	return resourceapply.ApplyUnstructuredResourceImproved(ctx, c.dynamicClient, c.eventRecorder, required, c.resourceCache, gvr, nil, nil)
+}
+
+func (c *TargetConfigReconciler) manageCertificateWebhookCR(ctx context.Context, leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*unstructured.Unstructured, bool, error) {
+	gvr := schema.GroupVersionResource{
+		Group:    "cert-manager.io",
+		Version:  "v1",
+		Resource: "certificates",
+	}
+
+	required := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "cert-manager.io/v1",
+			"kind":       "Certificate",
+			"metadata": map[string]interface{}{
+				"ownerReferences": []interface{}{
+					map[string]interface{}{
+						"apiVersion": "operator.openshift.io/v1",
+						"kind":       "LeaderWorkerSetOperator",
+						"name":       leaderWorkerSetOperator.Name,
+						"uid":        string(leaderWorkerSetOperator.UID),
+					},
+				},
+				"name":      "webhook-cert",
+				"namespace": c.namespace,
+			},
+			"spec": map[string]interface{}{
+				"secretName": "webhook-server-cert",
+				"dnsNames": []interface{}{
+					"lws-webhook-service.openshift-lws-operator.svc",
+				},
+				"issuerRef": map[string]interface{}{
+					"name": "selfsigned",
+				},
+			},
+		},
+	}
+
+	return resourceapply.ApplyUnstructuredResourceImproved(ctx, c.dynamicClient, c.eventRecorder, required, c.resourceCache, gvr, nil, nil)
+}
+
 func (c *TargetConfigReconciler) manageServiceController(ctx context.Context, ownerReference metav1.OwnerReference) (*v1.Service, bool, error) {
 	required := resourceread.ReadServiceV1OrDie(bindata.MustAsset("assets/lws-controller-generated/v1_service_lws-controller-manager-metrics-service.yaml"))
 	required.Namespace = c.namespace
@@ -399,9 +501,9 @@ func (c *TargetConfigReconciler) manageCustomResourceDefinition(ctx context.Cont
 
 	currentCRD, err := c.apiextensionClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, required.Name, metav1.GetOptions{})
 	switch {
-	case errors.IsNotFound(err):
+	case apierrors.IsNotFound(err):
 		// no action needed
-	case err != nil && !errors.IsNotFound(err):
+	case err != nil && !apierrors.IsNotFound(err):
 		return nil, false, err
 	case err == nil:
 		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil {
@@ -524,4 +626,20 @@ func (c *TargetConfigReconciler) manageDeployments(ctx context.Context,
 		c.eventRecorder,
 		required,
 		resourcemerge.ExpectedDeploymentGeneration(required, leaderWorkerSetOperator.Status.Generations))
+}
+
+func isResourceRegistered(discoveryClient discovery.DiscoveryInterface, gvk schema.GroupVersionKind) (bool, error) {
+	apiResourceLists, err := discoveryClient.ServerResourcesForGroupVersion(gvk.GroupVersion().String())
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	for _, apiResource := range apiResourceLists.APIResources {
+		if apiResource.Kind == gvk.Kind {
+			return true, nil
+		}
+	}
+	return false, nil
 }

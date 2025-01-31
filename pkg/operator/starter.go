@@ -6,6 +6,7 @@ import (
 	"time"
 
 	apiextclientv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
@@ -35,6 +36,11 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	}
 
 	apiextensionClient, err := apiextclientv1.NewForConfig(cc.KubeConfig)
+	if err != nil {
+		return err
+	}
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(cc.KubeConfig)
 	if err != nil {
 		return err
 	}
@@ -72,6 +78,7 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 		kubeInformersForNamespaces,
 		leaderWorkerSetOperatorClient,
 		dynamicClient,
+		discoveryClient,
 		kubeClient,
 		apiextensionClient,
 		cc.EventRecorder,
