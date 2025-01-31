@@ -7,6 +7,6 @@ roleRef:
   kind: ClusterRole
   name: lws-metrics-reader
 subjects:
-  - kind: ServiceAccount
-    name: lws-controller-manager
-    namespace: openshift-lws-operator
+- kind: ServiceAccount
+  name: lws-controller-manager
+  namespace: openshift-lws-operator

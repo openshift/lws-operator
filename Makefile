@@ -41,12 +41,16 @@ regen-crd:
 	mv manifests/operator.openshift.io_leaderworkersetoperators.yaml manifests/leaderworkerset-operator.crd.yaml
 	cp manifests/operator.openshift.io_leaderworkersetoperators.yaml deploy/00_lws-operator.crd.yaml
 
-generate: update-codegen-crds generate-clients
+generate: regen-crd generate-clients generate-controller-manifests
 .PHONY: generate
 
 generate-clients:
 	GO=GO111MODULE=on GOFLAGS=-mod=readonly hack/update-codegen.sh
 .PHONY: generate-clients
+
+generate-controller-manifests:
+	hack/update-lws-controller-manifests.sh
+.PHONY: generate-controller-manifests
 
 clean:
 	$(RM) ./lws-operator
