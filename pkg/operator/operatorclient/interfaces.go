@@ -16,8 +16,10 @@ import (
 	"github.com/openshift/library-go/pkg/apiserver/jsonpatch"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
 
+	leaderworkersetoperatorapiv1 "github.com/openshift/lws-operator/pkg/apis/leaderworkersetoperator/v1"
 	leaderworkersetoperatorv1 "github.com/openshift/lws-operator/pkg/generated/applyconfiguration/leaderworkersetoperator/v1"
 	leaderworkersetoperatorinterface "github.com/openshift/lws-operator/pkg/generated/clientset/versioned/typed/leaderworkersetoperator/v1"
+	leaderworkersetoperatorlisterv1 "github.com/openshift/lws-operator/pkg/generated/listers/leaderworkersetoperator/v1"
 )
 
 const OperatorConfigName = "cluster"
@@ -28,6 +30,7 @@ type LeaderWorkerSetClient struct {
 	Ctx               context.Context
 	SharedInformer    cache.SharedIndexInformer
 	OperatorClient    leaderworkersetoperatorinterface.LeaderWorkerSetOperatorInterface
+	Lister            leaderworkersetoperatorlisterv1.LeaderWorkerSetOperatorLister
 	OperatorNamespace string
 }
 
@@ -36,15 +39,26 @@ func (l *LeaderWorkerSetClient) Informer() cache.SharedIndexInformer {
 }
 
 func (l *LeaderWorkerSetClient) GetObjectMeta() (meta *metav1.ObjectMeta, err error) {
-	instance, err := l.OperatorClient.Get(l.Ctx, OperatorConfigName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
+	var instance *leaderworkersetoperatorapiv1.LeaderWorkerSetOperator
+	if l.SharedInformer.HasSynced() {
+		instance, err = l.Lister.LeaderWorkerSetOperators(l.OperatorNamespace).Get(OperatorConfigName)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		instance, err = l.OperatorClient.Get(l.Ctx, OperatorConfigName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &instance.ObjectMeta, nil
 }
 
 func (l *LeaderWorkerSetClient) GetOperatorState() (spec *operatorv1.OperatorSpec, status *operatorv1.OperatorStatus, resourceVersion string, err error) {
-	instance, err := l.OperatorClient.Get(l.Ctx, OperatorConfigName, metav1.GetOptions{})
+	if !l.SharedInformer.HasSynced() {
+		return l.GetOperatorStateWithQuorum(l.Ctx)
+	}
+	instance, err := l.Lister.LeaderWorkerSetOperators(l.OperatorNamespace).Get(OperatorConfigName)
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -52,7 +66,11 @@ func (l *LeaderWorkerSetClient) GetOperatorState() (spec *operatorv1.OperatorSpe
 }
 
 func (l *LeaderWorkerSetClient) GetOperatorStateWithQuorum(ctx context.Context) (spec *operatorv1.OperatorSpec, status *operatorv1.OperatorStatus, resourceVersion string, err error) {
-	return l.GetOperatorState()
+	instance, err := l.OperatorClient.Get(ctx, OperatorConfigName, metav1.GetOptions{})
+	if err != nil {
+		return nil, nil, "", err
+	}
+	return &instance.Spec.OperatorSpec, &instance.Status.OperatorStatus, instance.ResourceVersion, nil
 }
 
 func (l *LeaderWorkerSetClient) UpdateOperatorSpec(ctx context.Context, oldResourceVersion string, in *operatorv1.OperatorSpec) (out *operatorv1.OperatorSpec, newResourceVersion string, err error) {

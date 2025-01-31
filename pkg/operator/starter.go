@@ -54,6 +54,7 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	leaderWorkerSetOperatorClient := &operatorclient.LeaderWorkerSetClient{
 		Ctx:               ctx,
 		SharedInformer:    operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators().Informer(),
+		Lister:            operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators().Lister(),
 		OperatorClient:    operatorConfigClient.OpenShiftOperatorV1().LeaderWorkerSetOperators(namespace),
 		OperatorNamespace: namespace,
 	}
