@@ -3,7 +3,6 @@ package operator
 import (
 	"context"
 	"fmt"
-	"k8s.io/utils/ptr"
 	"strconv"
 	"time"
 
@@ -13,10 +12,12 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextclientv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
 	"github.com/openshift/library-go/pkg/controller"
@@ -382,13 +383,30 @@ func (c *TargetConfigReconciler) manageCustomResourceDefinition(ctx context.Cont
 		ownerReference,
 	}
 
-	// TODO set current ca to prevent hot-loop update
-	// TODO inject cert-manager ca annotation
 	if required.Spec.Conversion != nil &&
 		required.Spec.Conversion.Webhook != nil &&
 		required.Spec.Conversion.Webhook.ClientConfig != nil &&
 		required.Spec.Conversion.Webhook.ClientConfig.Service != nil {
 		required.Spec.Conversion.Webhook.ClientConfig.Service.Namespace = c.namespace
+	}
+
+	annotations := required.GetAnnotations()
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+	annotations["cert-manager.io/inject-ca-from"] = fmt.Sprintf("%s/webhook-cert", c.namespace)
+	required.SetAnnotations(annotations)
+
+	currentCRD, err := c.apiextensionClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, required.Name, metav1.GetOptions{})
+	switch {
+	case errors.IsNotFound(err):
+		// no action needed
+	case err != nil && !errors.IsNotFound(err):
+		return nil, false, err
+	case err == nil:
+		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil {
+			required.Spec.Conversion.Webhook.ClientConfig.CABundle = currentCRD.Spec.Conversion.Webhook.ClientConfig.CABundle
+		}
 	}
 
 	return resourceapply.ApplyCustomResourceDefinitionV1(ctx, c.apiextensionClient.ApiextensionsV1(), c.eventRecorder, required)
@@ -400,13 +418,18 @@ func (c *TargetConfigReconciler) manageMutatingWebhook(ctx context.Context, owne
 		ownerReference,
 	}
 
-	// TODO set current ca to prevent hot-loop update
-	// TODO inject cert-manager ca annotation
 	for i := range required.Webhooks {
 		if required.Webhooks[i].ClientConfig.Service != nil {
 			required.Webhooks[i].ClientConfig.Service.Namespace = c.namespace
 		}
 	}
+
+	annotations := required.GetAnnotations()
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+	annotations["cert-manager.io/inject-ca-from"] = fmt.Sprintf("%s/webhook-cert", c.namespace)
+	required.SetAnnotations(annotations)
 
 	return resourceapply.ApplyMutatingWebhookConfigurationImproved(ctx, c.kubeClient.AdmissionregistrationV1(), c.eventRecorder, required, c.resourceCache)
 }
@@ -417,13 +440,18 @@ func (c *TargetConfigReconciler) manageValidatingWebhook(ctx context.Context, ow
 		ownerReference,
 	}
 
-	// TODO set current ca to prevent hot-loop update
-	// TODO inject cert-manager ca annotation
 	for i := range required.Webhooks {
 		if required.Webhooks[i].ClientConfig.Service != nil {
 			required.Webhooks[i].ClientConfig.Service.Namespace = c.namespace
 		}
 	}
+
+	annotations := required.GetAnnotations()
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+	annotations["cert-manager.io/inject-ca-from"] = fmt.Sprintf("%s/webhook-cert", c.namespace)
+	required.SetAnnotations(annotations)
 
 	return resourceapply.ApplyValidatingWebhookConfigurationImproved(ctx, c.kubeClient.AdmissionregistrationV1(), c.eventRecorder, required, c.resourceCache)
 }
@@ -449,9 +477,6 @@ func (c *TargetConfigReconciler) manageDeployments(ctx context.Context,
 		ownerReference,
 	}
 
-	// Use -      nodeSelector:
-	//-        "node-role.kubernetes.io/worker": ""
-
 	if c.targetImage != "" {
 		images := map[string]string{
 			"${CONTROLLER_IMAGE}": c.targetImage,
@@ -465,6 +490,10 @@ func (c *TargetConfigReconciler) manageDeployments(ctx context.Context,
 				}
 			}
 		}
+	}
+
+	required.Spec.Template.Spec.NodeSelector = map[string]string{
+		"node-role.kubernetes.io/worker": "",
 	}
 
 	resourcemerge.MergeMap(ptr.To(false), &required.Spec.Template.Annotations, specAnnotations)
