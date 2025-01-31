@@ -1,0 +1,7 @@
+reviewers:
+  - ardaguclu
+  - atiratree
+approvers:
+  - ardaguclu
+  - atiratree
+component: "lws-operator"
