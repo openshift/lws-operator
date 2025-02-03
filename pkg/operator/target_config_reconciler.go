@@ -269,7 +269,7 @@ func (c *TargetConfigReconciler) manageConfigmap(ctx context.Context, ownerRefer
 }
 
 func (c *TargetConfigReconciler) manageRole(ctx context.Context, ownerReference metav1.OwnerReference) (*rbacv1.Role, bool, error) {
-	required := resourceread.ReadRoleV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_clusterrole_lws-manager-role.yaml"))
+	required := resourceread.ReadRoleV1OrDie(bindata.MustAsset("assets/lws-controller-generated/rbac.authorization.k8s.io_v1_role_lws-leader-election-role.yaml"))
 	required.Namespace = c.namespace
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
@@ -581,7 +581,7 @@ func (c *TargetConfigReconciler) manageDeployments(ctx context.Context,
 
 	if c.targetImage != "" {
 		images := map[string]string{
-			"${CONTROLLER_IMAGE}": c.targetImage,
+			"${CONTROLLER_IMAGE}:latest": c.targetImage,
 		}
 
 		for i := range required.Spec.Template.Spec.Containers {
