@@ -437,7 +437,7 @@ func (c *TargetConfigReconciler) manageCertificateWebhookCR(ctx context.Context,
 			"spec": map[string]interface{}{
 				"secretName": "webhook-server-cert",
 				"dnsNames": []interface{}{
-					"lws-webhook-service.openshift-lws-operator.svc",
+					fmt.Sprintf("lws-webhook-service.%s.svc", c.namespace),
 				},
 				"issuerRef": map[string]interface{}{
 					"name": "selfsigned",
