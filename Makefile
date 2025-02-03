@@ -49,8 +49,12 @@ generate-clients:
 .PHONY: generate-clients
 
 generate-controller-manifests:
-	hack/update-lws-controller-manifests.sh
+	LWS_BRANCH=main hack/update-lws-controller-manifests.sh
 .PHONY: generate-controller-manifests
+
+verify-controller-manifests:
+	LWS_BRANCH=main hack/verify-lws-controller-manifests.sh
+.PHONY: verify-controller-manifests
 
 clean:
 	$(RM) ./lws-operator
