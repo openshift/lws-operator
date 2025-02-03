@@ -191,12 +191,12 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		return err
 	}
 
-	_, _, err = c.manageConfigmap(ctx, ownerReference)
+	configMap, _, err := c.manageConfigmap(ctx, ownerReference)
 	if err != nil {
 		klog.Errorf("unable to manage configmap err: %v", err)
 		return err
 	}
-	// TODO more spec annotation is needed?
+	specAnnotations["configmaps/"+configMap.Name] = configMap.ResourceVersion
 
 	_, _, err = c.manageCustomResourceDefinition(ctx, ownerReference)
 	if err != nil {
