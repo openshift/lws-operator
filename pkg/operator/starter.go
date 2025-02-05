@@ -53,20 +53,20 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 
 	namespace := cc.OperatorNamespace
 	if namespace == "openshift-config-managed" {
-		// we need to fall back to our default namespace rather than library-go's.
+		// we need to fall back to our default namespace rather than library-go's when running outside the cluster
 		namespace = operatorNamespace
 	}
 
 	kubeInformersForNamespaces := v1helpers.NewKubeInformersForNamespaces(kubeClient,
 		"",
-		cc.OperatorNamespace,
+		namespace,
 	)
 
 	leaderWorkerSetOperatorClient := &operatorclient.LeaderWorkerSetClient{
 		Ctx:               ctx,
 		SharedInformer:    operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators().Informer(),
 		Lister:            operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators().Lister(),
-		OperatorClient:    operatorConfigClient.OpenShiftOperatorV1().LeaderWorkerSetOperators(namespace),
+		OperatorClient:    operatorConfigClient.OpenShiftOperatorV1(),
 		OperatorNamespace: namespace,
 	}
 

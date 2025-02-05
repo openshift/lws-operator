@@ -3,12 +3,12 @@ package operator
 import (
 	"context"
 	"fmt"
-	"strconv"
+	"strings"
 	"time"
 
 	admissionv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextclientv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -19,11 +19,10 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/klog/v2"
+	v1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/utils/ptr"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
-	"github.com/openshift/library-go/pkg/controller"
 	"github.com/openshift/library-go/pkg/controller/factory"
 	"github.com/openshift/library-go/pkg/operator/events"
 	"github.com/openshift/library-go/pkg/operator/resource/resourceapply"
@@ -38,6 +37,12 @@ import (
 	"github.com/openshift/lws-operator/pkg/operator/operatorclient"
 )
 
+const (
+	WebhookCertificateSecretName  = "webhook-server-cert"
+	WebhookCertificateName        = "lws-serving-cert"
+	CertManagerInjectCaAnnotation = "cert-manager.io/inject-ca-from"
+)
+
 type TargetConfigReconciler struct {
 	targetImage                   string
 	operatorClient                leaderworkersetoperatorv1clientset.LeaderWorkerSetOperatorInterface
@@ -48,6 +53,7 @@ type TargetConfigReconciler struct {
 	apiextensionClient            *apiextclientv1.Clientset
 	eventRecorder                 events.Recorder
 	kubeInformersForNamespaces    v1helpers.KubeInformersForNamespaces
+	secretLister                  v1.SecretLister
 	namespace                     string
 	resourceCache                 resourceapply.ResourceCache
 }
@@ -74,6 +80,7 @@ func NewTargetConfigReconciler(
 		apiextensionClient:            apiExtensionClient,
 		eventRecorder:                 eventRecorder,
 		kubeInformersForNamespaces:    kubeInformersForNamespaces,
+		secretLister:                  kubeInformersForNamespaces.SecretLister(),
 		targetImage:                   targetImage,
 		namespace:                     namespace,
 		resourceCache:                 resourceapply.NewResourceCache(),
@@ -83,8 +90,13 @@ func NewTargetConfigReconciler(
 		// for the operator changes
 		operatorClientInformer.Informer(),
 		// for the deployment and its configmap and secret
-		kubeInformersForNamespaces.InformersFor(operatorNamespace).Apps().V1().Deployments().Informer(),
-	).ResyncEvery(time.Minute*5).WithSync(c.sync).ToController("TargetConfigController", eventRecorder)
+		kubeInformersForNamespaces.InformersFor(namespace).Apps().V1().Deployments().Informer(),
+		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().ConfigMaps().Informer(),
+		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().Secrets().Informer(),
+	).ResyncEvery(time.Minute*5).
+		WithSync(c.sync).
+		WithSyncDegradedOnError(leaderWorkerSetOperatorClient).
+		ToController("TargetConfigController", eventRecorder)
 }
 
 func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncContext) error {
@@ -94,18 +106,15 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		Kind:    "Issuer",
 	})
 	if err != nil {
-		klog.Errorf("unable to check cert-manager is installed: %v", err)
-		return err
+		return fmt.Errorf("unable to check cert-manager is installed: %w", err)
 	}
 	if !found {
-		klog.Errorf("please make sure that cert-manager is installed")
 		return fmt.Errorf("please make sure that cert-manager is installed on your cluster")
 	}
 
 	leaderWorkerSetOperator, err := c.operatorClient.Get(ctx, operatorclient.OperatorConfigName, metav1.GetOptions{})
 	if err != nil {
-		klog.ErrorS(err, "unable to get operator configuration", "namespace", c.namespace, "lws", operatorclient.OperatorConfigName)
-		return err
+		return fmt.Errorf("unable to get operator configuration %s/%s: %w", c.namespace, operatorclient.OperatorConfigName, err)
 	}
 
 	ownerReference := metav1.OwnerReference{
@@ -115,134 +124,117 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		UID:        leaderWorkerSetOperator.UID,
 	}
 
-	specAnnotations := map[string]string{
-		"leaderworkersetoperator.operator.openshift.io/cluster": strconv.FormatInt(leaderWorkerSetOperator.Generation, 10),
-	}
-
-	_, _, err = c.manageIssuerCR(ctx, leaderWorkerSetOperator)
-	if err != nil {
-		klog.Errorf("unable to manage issuer err: %v", err)
-		return err
-	}
-
-	_, _, err = c.manageCertificateWebhookCR(ctx, leaderWorkerSetOperator)
-	if err != nil {
-		klog.Errorf("unable to manage webhook certificate err: %v", err)
-		return err
-	}
+	specAnnotations := make(map[string]string)
 
 	_, _, err = c.manageClusterRoleManager(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage manager cluster role err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageClusterRoleMetrics(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage metrics cluster role err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageClusterRoleProxy(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage proxy cluster role err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageClusterRoleBindingManager(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage manager cluster role binding err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageClusterRoleBindingMetrics(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage metrics cluster role binding err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageClusterRoleBindingProxy(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage proxy cluster role binding err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageRole(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage cluster role err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageRoleMonitoring(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage cluster role err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageRoleBinding(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage cluster role binding err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageRoleBindingMonitoring(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage cluster role binding err: %v", err)
 		return err
 	}
 
+	_, _, err = c.manageServiceWebhook(ctx, ownerReference)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = c.manageIssuerCR(ctx, ownerReference)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = c.manageCertificateWebhookCR(ctx, ownerReference)
+	if err != nil {
+		return err
+	}
+
+	webhookSecret, _, err := c.manageWebhookCertSecret()
+	if err != nil {
+		return err
+	}
+	specAnnotations["secrets/"+webhookSecret.Name] = webhookSecret.ResourceVersion
+
 	configMap, _, err := c.manageConfigmap(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage configmap err: %v", err)
 		return err
 	}
 	specAnnotations["configmaps/"+configMap.Name] = configMap.ResourceVersion
 
 	_, _, err = c.manageCustomResourceDefinition(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage leaderworkerset CRD err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageServiceAccount(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage service account err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageServiceController(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage service err: %v", err)
-		return err
-	}
-
-	_, _, err = c.manageServiceWebhook(ctx, ownerReference)
-	if err != nil {
-		klog.Errorf("unable to manage service err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageMutatingWebhook(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage service err: %v", err)
 		return err
 	}
 
 	_, _, err = c.manageValidatingWebhook(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage service err: %v", err)
 		return err
 	}
 
 	_, err = c.manageServiceMonitor(ctx, ownerReference)
 	if err != nil {
-		klog.Errorf("unable to manage service account err: %v", err)
 		return err
 	}
 
 	deployment, _, err := c.manageDeployments(ctx, leaderWorkerSetOperator, ownerReference, specAnnotations)
 	if err != nil {
-		klog.Errorf("unable to manage deployment err: %v", err)
 		return err
 	}
 
@@ -254,7 +246,7 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 	return err
 }
 
-func (c *TargetConfigReconciler) manageConfigmap(ctx context.Context, ownerReference metav1.OwnerReference) (*v1.ConfigMap, bool, error) {
+func (c *TargetConfigReconciler) manageConfigmap(ctx context.Context, ownerReference metav1.OwnerReference) (*corev1.ConfigMap, bool, error) {
 	configData := bindata.MustAsset("assets/lws-controller-config/config.yaml")
 	required := resourceread.ReadConfigMapV1OrDie(bindata.MustAsset("assets/lws-controller/configmap.yaml"))
 	required.Namespace = c.namespace
@@ -266,6 +258,18 @@ func (c *TargetConfigReconciler) manageConfigmap(ctx context.Context, ownerRefer
 	}
 
 	return resourceapply.ApplyConfigMap(ctx, c.kubeClient.CoreV1(), c.eventRecorder, required)
+}
+
+func (c *TargetConfigReconciler) manageWebhookCertSecret() (*corev1.Secret, bool, error) {
+	secret, err := c.secretLister.Secrets(c.namespace).Get(WebhookCertificateSecretName)
+	// secret should be generated by the cert manager
+	if err != nil {
+		return nil, false, err
+	}
+	if len(secret.Data["tls.crt"]) == 0 || len(secret.Data["tls.key"]) == 0 {
+		return nil, false, fmt.Errorf("%s secret is not initialized", secret.Name)
+	}
+	return secret, false, nil
 }
 
 func (c *TargetConfigReconciler) manageRole(ctx context.Context, ownerReference metav1.OwnerReference) (*rbacv1.Role, bool, error) {
@@ -284,7 +288,6 @@ func (c *TargetConfigReconciler) manageRoleMonitoring(ctx context.Context, owner
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	controller.EnsureOwnerRef(required, ownerReference)
 
 	return resourceapply.ApplyRole(ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
@@ -379,77 +382,62 @@ func (c *TargetConfigReconciler) manageClusterRoleBindingProxy(ctx context.Conte
 	return resourceapply.ApplyClusterRoleBinding(ctx, c.kubeClient.RbacV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageIssuerCR(ctx context.Context, leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*unstructured.Unstructured, bool, error) {
+func (c *TargetConfigReconciler) manageIssuerCR(ctx context.Context, ownerReference metav1.OwnerReference) (*unstructured.Unstructured, bool, error) {
 	gvr := schema.GroupVersionResource{
 		Group:    "cert-manager.io",
 		Version:  "v1",
 		Resource: "issuers",
 	}
 
-	required := &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "cert-manager.io/v1",
-			"kind":       "Issuer",
-			"metadata": map[string]interface{}{
-				"ownerReferences": []interface{}{
-					map[string]interface{}{
-						"apiVersion": "operator.openshift.io/v1",
-						"kind":       "LeaderWorkerSetOperator",
-						"name":       leaderWorkerSetOperator.Name,
-						"uid":        string(leaderWorkerSetOperator.UID),
-					},
-				},
-				"name":      "selfsigned",
-				"namespace": c.namespace,
-			},
-			"spec": map[string]interface{}{
-				"selfSigned": map[string]interface{}{},
-			},
-		},
+	issuer, err := resourceread.ReadGenericWithUnstructured(bindata.MustAsset("assets/lws-controller-generated/cert-manager.io_v1_issuer_lws-selfsigned-issuer.yaml"))
+	if err != nil {
+		return nil, false, err
 	}
+	issuerAsUnstructured, ok := issuer.(*unstructured.Unstructured)
+	if !ok {
+		return nil, false, fmt.Errorf("issuer is not an Unstructured")
+	}
+	issuerAsUnstructured.SetNamespace(c.namespace)
+	ownerReferences := issuerAsUnstructured.GetOwnerReferences()
+	ownerReferences = append(ownerReferences, ownerReference)
+	issuerAsUnstructured.SetOwnerReferences(ownerReferences)
 
-	return resourceapply.ApplyUnstructuredResourceImproved(ctx, c.dynamicClient, c.eventRecorder, required, c.resourceCache, gvr, nil, nil)
+	return resourceapply.ApplyUnstructuredResourceImproved(ctx, c.dynamicClient, c.eventRecorder, issuerAsUnstructured, c.resourceCache, gvr, nil, nil)
 }
 
-func (c *TargetConfigReconciler) manageCertificateWebhookCR(ctx context.Context, leaderWorkerSetOperator *leaderworkersetapiv1.LeaderWorkerSetOperator) (*unstructured.Unstructured, bool, error) {
+func (c *TargetConfigReconciler) manageCertificateWebhookCR(ctx context.Context, ownerReference metav1.OwnerReference) (*unstructured.Unstructured, bool, error) {
 	gvr := schema.GroupVersionResource{
 		Group:    "cert-manager.io",
 		Version:  "v1",
 		Resource: "certificates",
 	}
 
-	required := &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "cert-manager.io/v1",
-			"kind":       "Certificate",
-			"metadata": map[string]interface{}{
-				"ownerReferences": []interface{}{
-					map[string]interface{}{
-						"apiVersion": "operator.openshift.io/v1",
-						"kind":       "LeaderWorkerSetOperator",
-						"name":       leaderWorkerSetOperator.Name,
-						"uid":        string(leaderWorkerSetOperator.UID),
-					},
-				},
-				"name":      "webhook-cert",
-				"namespace": c.namespace,
-			},
-			"spec": map[string]interface{}{
-				"secretName": "webhook-server-cert",
-				"dnsNames": []interface{}{
-					fmt.Sprintf("lws-webhook-service.%s.svc", c.namespace),
-				},
-				"issuerRef": map[string]interface{}{
-					"name": "selfsigned",
-				},
-			},
-		},
+	service := resourceread.ReadServiceV1OrDie(bindata.MustAsset("assets/lws-controller-generated/v1_service_lws-webhook-service.yaml"))
+	issuer, err := resourceread.ReadGenericWithUnstructured(bindata.MustAsset("assets/lws-controller-generated/cert-manager.io_v1_certificate_lws-serving-cert.yaml"))
+	if err != nil {
+		return nil, false, err
 	}
-
-	return resourceapply.ApplyUnstructuredResourceImproved(ctx, c.dynamicClient, c.eventRecorder, required, c.resourceCache, gvr, nil, nil)
+	issuerAsUnstructured, ok := issuer.(*unstructured.Unstructured)
+	if !ok {
+		return nil, false, fmt.Errorf("issuer is not an Unstructured")
+	}
+	issuerAsUnstructured.SetNamespace(c.namespace)
+	ownerReferences := issuerAsUnstructured.GetOwnerReferences()
+	ownerReferences = append(ownerReferences, ownerReference)
+	issuerAsUnstructured.SetOwnerReferences(ownerReferences)
+	dnsNames, found, err := unstructured.NestedStringSlice(issuerAsUnstructured.Object, "spec", "dnsNames")
+	if !found || err != nil {
+		return nil, false, fmt.Errorf("%v: .spec.dnsNames not found: %v", issuerAsUnstructured.GetName(), err)
+	}
+	for i := range dnsNames {
+		dnsNames[i] = strings.Replace(dnsNames[i], "SERVICE_NAME", service.Name, 1)
+		dnsNames[i] = strings.Replace(dnsNames[i], "SERVICE_NAMESPACE", c.namespace, 1)
+	}
+	unstructured.SetNestedStringSlice(issuerAsUnstructured.Object, dnsNames, "spec", "dnsNames")
+	return resourceapply.ApplyUnstructuredResourceImproved(ctx, c.dynamicClient, c.eventRecorder, issuerAsUnstructured, c.resourceCache, gvr, nil, nil)
 }
 
-func (c *TargetConfigReconciler) manageServiceController(ctx context.Context, ownerReference metav1.OwnerReference) (*v1.Service, bool, error) {
+func (c *TargetConfigReconciler) manageServiceController(ctx context.Context, ownerReference metav1.OwnerReference) (*corev1.Service, bool, error) {
 	required := resourceread.ReadServiceV1OrDie(bindata.MustAsset("assets/lws-controller-generated/v1_service_lws-controller-manager-metrics-service.yaml"))
 	required.Namespace = c.namespace
 	required.OwnerReferences = []metav1.OwnerReference{
@@ -459,7 +447,7 @@ func (c *TargetConfigReconciler) manageServiceController(ctx context.Context, ow
 	return resourceapply.ApplyService(ctx, c.kubeClient.CoreV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageServiceWebhook(ctx context.Context, ownerReference metav1.OwnerReference) (*v1.Service, bool, error) {
+func (c *TargetConfigReconciler) manageServiceWebhook(ctx context.Context, ownerReference metav1.OwnerReference) (*corev1.Service, bool, error) {
 	required := resourceread.ReadServiceV1OrDie(bindata.MustAsset("assets/lws-controller-generated/v1_service_lws-webhook-service.yaml"))
 	required.Namespace = c.namespace
 	required.OwnerReferences = []metav1.OwnerReference{
@@ -469,7 +457,7 @@ func (c *TargetConfigReconciler) manageServiceWebhook(ctx context.Context, owner
 	return resourceapply.ApplyService(ctx, c.kubeClient.CoreV1(), c.eventRecorder, required)
 }
 
-func (c *TargetConfigReconciler) manageServiceAccount(ctx context.Context, ownerReference metav1.OwnerReference) (*v1.ServiceAccount, bool, error) {
+func (c *TargetConfigReconciler) manageServiceAccount(ctx context.Context, ownerReference metav1.OwnerReference) (*corev1.ServiceAccount, bool, error) {
 	required := resourceread.ReadServiceAccountV1OrDie(bindata.MustAsset("assets/lws-controller-generated/v1_serviceaccount_lws-controller-manager.yaml"))
 	required.Namespace = c.namespace
 	required.OwnerReferences = []metav1.OwnerReference{
@@ -492,12 +480,10 @@ func (c *TargetConfigReconciler) manageCustomResourceDefinition(ctx context.Cont
 		required.Spec.Conversion.Webhook.ClientConfig.Service.Namespace = c.namespace
 	}
 
-	annotations := required.GetAnnotations()
-	if annotations == nil {
-		annotations = map[string]string{}
+	err := injectCertManagerCA(required, c.namespace)
+	if err != nil {
+		return nil, false, err
 	}
-	annotations["cert-manager.io/inject-ca-from"] = fmt.Sprintf("%s/webhook-cert", c.namespace)
-	required.SetAnnotations(annotations)
 
 	currentCRD, err := c.apiextensionClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, required.Name, metav1.GetOptions{})
 	switch {
@@ -526,12 +512,10 @@ func (c *TargetConfigReconciler) manageMutatingWebhook(ctx context.Context, owne
 		}
 	}
 
-	annotations := required.GetAnnotations()
-	if annotations == nil {
-		annotations = map[string]string{}
+	err := injectCertManagerCA(required, c.namespace)
+	if err != nil {
+		return nil, false, err
 	}
-	annotations["cert-manager.io/inject-ca-from"] = fmt.Sprintf("%s/webhook-cert", c.namespace)
-	required.SetAnnotations(annotations)
 
 	return resourceapply.ApplyMutatingWebhookConfigurationImproved(ctx, c.kubeClient.AdmissionregistrationV1(), c.eventRecorder, required, c.resourceCache)
 }
@@ -548,12 +532,10 @@ func (c *TargetConfigReconciler) manageValidatingWebhook(ctx context.Context, ow
 		}
 	}
 
-	annotations := required.GetAnnotations()
-	if annotations == nil {
-		annotations = map[string]string{}
+	err := injectCertManagerCA(required, c.namespace)
+	if err != nil {
+		return nil, false, err
 	}
-	annotations["cert-manager.io/inject-ca-from"] = fmt.Sprintf("%s/webhook-cert", c.namespace)
-	required.SetAnnotations(annotations)
 
 	return resourceapply.ApplyValidatingWebhookConfigurationImproved(ctx, c.kubeClient.AdmissionregistrationV1(), c.eventRecorder, required, c.resourceCache)
 }
@@ -592,10 +574,6 @@ func (c *TargetConfigReconciler) manageDeployments(ctx context.Context,
 				}
 			}
 		}
-	}
-
-	required.Spec.Template.Spec.NodeSelector = map[string]string{
-		"node-role.kubernetes.io/worker": "",
 	}
 
 	resourcemerge.MergeMap(ptr.To(false), &required.Spec.Template.Annotations, specAnnotations)
@@ -642,4 +620,17 @@ func isResourceRegistered(discoveryClient discovery.DiscoveryInterface, gvk sche
 		}
 	}
 	return false, nil
+}
+
+func injectCertManagerCA(obj metav1.Object, namespace string) error {
+	annotations := obj.GetAnnotations()
+	if _, ok := annotations[CertManagerInjectCaAnnotation]; !ok {
+		return fmt.Errorf("%s is missing %s annotation", obj.GetName(), CertManagerInjectCaAnnotation)
+	}
+	injectAnnotation := annotations[CertManagerInjectCaAnnotation]
+	injectAnnotation = strings.Replace(injectAnnotation, "CERTIFICATE_NAMESPACE", namespace, 1)
+	injectAnnotation = strings.Replace(injectAnnotation, "CERTIFICATE_NAME", WebhookCertificateName, 1)
+	annotations[CertManagerInjectCaAnnotation] = injectAnnotation
+	obj.SetAnnotations(annotations)
+	return nil
 }
