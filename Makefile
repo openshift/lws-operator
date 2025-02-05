@@ -52,6 +52,10 @@ generate-controller-manifests:
 	hack/update-lws-controller-manifests.sh
 .PHONY: generate-controller-manifests
 
+verify-controller-manifests:
+	hack/verify-lws-controller-manifests.sh
+.PHONY: verify-controller-manifests
+
 clean:
 	$(RM) ./lws-operator
 	$(RM) -r ./_tmp

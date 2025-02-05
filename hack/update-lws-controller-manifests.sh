@@ -20,7 +20,7 @@ SCRIPT_ROOT="$(realpath "$(dirname "$(readlink -f "$0")")"/..)"
 LWS_ASSETS_DIR="${SCRIPT_ROOT}/bindata/assets/lws-controller-generated"
 LWS_CONTROLLER_DIR="${LWS_CONTROLLER_DIR:-${HOME}/go/src/sigs.k8s.io/lws}"
 
-LWS_RELEASE_TAG="${LWS_RELEASE_TAG:-"upstream/main"}" # "v0.5.0"
+LWS_BRANCH_OR_TAG="${LWS_BRANCH_OR_TAG:-"$(cat "${SCRIPT_ROOT}/operand-git-ref")"}"
 LWS_NAMESPACE="${LWS_NAMESPACE:-openshift-lws-operator}"
 
 if [ ! -d "${LWS_CONTROLLER_DIR}" ]; then
@@ -39,7 +39,13 @@ pushd "${LWS_CONTROLLER_DIR}"
   fi
   # ensure kustomize exists or download it
   make kustomize
-  git checkout "${LWS_RELEASE_TAG}"
+
+  ORIGINAL_GIT_BRANCH_OR_COMMIT="$(git branch --show-current)"
+  if [[ -z "${ORIGINAL_GIT_BRANCH_OR_COMMIT}" ]]; then
+      ORIGINAL_GIT_BRANCH_OR_COMMIT="$(git rev-parse HEAD)"
+  fi
+
+  git checkout "${LWS_BRANCH_OR_TAG}"
     # backup kustomization.yaml and edit the default values
     pushd "${LWS_CONTROLLER_DIR}/config/default"
       cp "${LWS_CONTROLLER_DIR}/config/default/kustomization.yaml" "${SCRIPT_ROOT}/_tmp/lws_kustomization.yaml.bak"
@@ -55,7 +61,7 @@ pushd "${LWS_CONTROLLER_DIR}"
     # restore back to the original state
     mv "${SCRIPT_ROOT}/_tmp/lws_kustomization.yaml.bak" "${LWS_CONTROLLER_DIR}/config/default/kustomization.yaml"
     mv  "${SCRIPT_ROOT}/_tmp/lws_components_manager_kustomization.yaml.bak" "${LWS_CONTROLLER_DIR}/config/manager/kustomization.yaml"
-  git checkout -
+  git checkout "${ORIGINAL_GIT_BRANCH_OR_COMMIT}"
 popd
 
 # post processing
@@ -63,7 +69,11 @@ pushd "${LWS_ASSETS_DIR}"
 # we need to modify prometheus rolebinding to use openshift-monitoring namespace
 sed -i 's/namespace: monitoring/namespace: openshift-monitoring/g' rbac.authorization.k8s.io_v1_rolebinding_lws-prometheus-k8s.yaml
 # we supply our own config
-rm ./v1_configmap_lws-manager-config.yaml
+if [ -e "./v1_configmap_lws-manager-config.yaml" ]; then
+  rm ./v1_configmap_lws-manager-config.yaml
+fi
 # we don't need the namespace object
-rm ./v1_namespace_openshift-lws-operator.yaml
+if [ -e "./v1_namespace_openshift-lws-operator.yaml" ]; then
+  rm ./v1_namespace_openshift-lws-operator.yaml
+fi
 popd
