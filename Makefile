@@ -52,6 +52,10 @@ generate-controller-manifests:
 	hack/update-lws-controller-manifests.sh
 .PHONY: generate-controller-manifests
 
+verify-codegen:
+	hack/verify-codegen.sh
+.PHONY: verify-codegen
+
 verify-controller-manifests:
 	hack/verify-lws-controller-manifests.sh
 .PHONY: verify-controller-manifests
