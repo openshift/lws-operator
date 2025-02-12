@@ -36,7 +36,6 @@ cp -a "${DIFFROOT}"/* "${TMP_DIFFROOT}"
 echo "diffing ${DIFFROOT} against freshly generated codegen"
 ret=0
 diff -Naupr "${DIFFROOT}" "${TMP_DIFFROOT}" || ret=$?
-cp -a "${TMP_DIFFROOT}"/* "${DIFFROOT}"
 if [[ $ret -eq 0 ]]
 then
   echo "${DIFFROOT} up to date."
