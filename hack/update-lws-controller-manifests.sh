@@ -27,7 +27,7 @@ LWS_NAMESPACE="${LWS_NAMESPACE:-openshift-lws-operator}"
 # Ensure yq is installed
 if ! command -v yq &> /dev/null; then
     echo "yq is not installed. Installing yq..."
-    go install github.com/mikefarah/yq/v4@v4.45.1
+    go install -mod=readonly github.com/mikefarah/yq/v4@v4.45.1
 fi
 
 if [ ! -d "${LWS_CONTROLLER_DIR}" ]; then
@@ -45,7 +45,7 @@ pushd "${LWS_CONTROLLER_DIR}"
       exit 2
   fi
   # ensure kustomize exists or download it
-  make kustomize
+  GOFLAGS='-mod=readonly' make kustomize
 
   ORIGINAL_GIT_BRANCH_OR_COMMIT="$(git branch --show-current)"
   if [[ -z "${ORIGINAL_GIT_BRANCH_OR_COMMIT}" ]]; then
