@@ -27,11 +27,10 @@ const OperatorConfigName = "cluster"
 var _ v1helpers.OperatorClient = &LeaderWorkerSetClient{}
 
 type LeaderWorkerSetClient struct {
-	Ctx               context.Context
-	SharedInformer    cache.SharedIndexInformer
-	OperatorClient    leaderworkersetoperatorinterface.OpenShiftOperatorV1Interface
-	Lister            leaderworkersetoperatorlisterv1.LeaderWorkerSetOperatorLister
-	OperatorNamespace string
+	Ctx            context.Context
+	SharedInformer cache.SharedIndexInformer
+	OperatorClient leaderworkersetoperatorinterface.OpenShiftOperatorV1Interface
+	Lister         leaderworkersetoperatorlisterv1.LeaderWorkerSetOperatorLister
 }
 
 func (l *LeaderWorkerSetClient) Informer() cache.SharedIndexInformer {
@@ -41,12 +40,12 @@ func (l *LeaderWorkerSetClient) Informer() cache.SharedIndexInformer {
 func (l *LeaderWorkerSetClient) GetObjectMeta() (meta *metav1.ObjectMeta, err error) {
 	var instance *leaderworkersetoperatorapiv1.LeaderWorkerSetOperator
 	if l.SharedInformer.HasSynced() {
-		instance, err = l.Lister.LeaderWorkerSetOperators(l.OperatorNamespace).Get(OperatorConfigName)
+		instance, err = l.Lister.Get(OperatorConfigName)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		instance, err = l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).Get(l.Ctx, OperatorConfigName, metav1.GetOptions{})
+		instance, err = l.OperatorClient.LeaderWorkerSetOperators().Get(l.Ctx, OperatorConfigName, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +57,7 @@ func (l *LeaderWorkerSetClient) GetOperatorState() (spec *operatorv1.OperatorSpe
 	if !l.SharedInformer.HasSynced() {
 		return l.GetOperatorStateWithQuorum(l.Ctx)
 	}
-	instance, err := l.Lister.LeaderWorkerSetOperators(l.OperatorNamespace).Get(OperatorConfigName)
+	instance, err := l.Lister.Get(OperatorConfigName)
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -66,7 +65,7 @@ func (l *LeaderWorkerSetClient) GetOperatorState() (spec *operatorv1.OperatorSpe
 }
 
 func (l *LeaderWorkerSetClient) GetOperatorStateWithQuorum(ctx context.Context) (spec *operatorv1.OperatorSpec, status *operatorv1.OperatorStatus, resourceVersion string, err error) {
-	instance, err := l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
+	instance, err := l.OperatorClient.LeaderWorkerSetOperators().Get(ctx, OperatorConfigName, metav1.GetOptions{})
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -74,13 +73,13 @@ func (l *LeaderWorkerSetClient) GetOperatorStateWithQuorum(ctx context.Context) 
 }
 
 func (l *LeaderWorkerSetClient) UpdateOperatorSpec(ctx context.Context, resourceVersion string, in *operatorv1.OperatorSpec) (out *operatorv1.OperatorSpec, newResourceVersion string, err error) {
-	original, err := l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{ResourceVersion: resourceVersion})
+	original, err := l.OperatorClient.LeaderWorkerSetOperators().Get(ctx, OperatorConfigName, metav1.GetOptions{ResourceVersion: resourceVersion})
 	if err != nil {
 		return nil, "", err
 	}
 	original.Spec.OperatorSpec = *in
 
-	ret, err := l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).Update(ctx, original, metav1.UpdateOptions{})
+	ret, err := l.OperatorClient.LeaderWorkerSetOperators().Update(ctx, original, metav1.UpdateOptions{})
 	if err != nil {
 		return nil, "", err
 	}
@@ -89,13 +88,13 @@ func (l *LeaderWorkerSetClient) UpdateOperatorSpec(ctx context.Context, resource
 }
 
 func (l *LeaderWorkerSetClient) UpdateOperatorStatus(ctx context.Context, resourceVersion string, in *operatorv1.OperatorStatus) (out *operatorv1.OperatorStatus, err error) {
-	original, err := l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{ResourceVersion: resourceVersion})
+	original, err := l.OperatorClient.LeaderWorkerSetOperators().Get(ctx, OperatorConfigName, metav1.GetOptions{ResourceVersion: resourceVersion})
 	if err != nil {
 		return nil, err
 	}
 	original.Status.OperatorStatus = *in
 
-	ret, err := l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).UpdateStatus(ctx, original, metav1.UpdateOptions{})
+	ret, err := l.OperatorClient.LeaderWorkerSetOperators().UpdateStatus(ctx, original, metav1.UpdateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -110,10 +109,10 @@ func (l *LeaderWorkerSetClient) ApplyOperatorSpec(ctx context.Context, fieldMana
 	desiredSpec := &leaderworkersetoperatorv1.LeaderWorkerSetOperatorSpecApplyConfiguration{
 		OperatorSpecApplyConfiguration: *applyConfiguration,
 	}
-	desired := leaderworkersetoperatorv1.LeaderWorkerSetOperator(OperatorConfigName, l.OperatorNamespace)
+	desired := leaderworkersetoperatorv1.LeaderWorkerSetOperator(OperatorConfigName)
 	desired.WithSpec(desiredSpec)
 
-	instance, err := l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
+	instance, err := l.OperatorClient.LeaderWorkerSetOperators().Get(ctx, OperatorConfigName, metav1.GetOptions{})
 	switch {
 	case apierrors.IsNotFound(err):
 	// do nothing and proceed with the apply
@@ -129,7 +128,7 @@ func (l *LeaderWorkerSetClient) ApplyOperatorSpec(ctx context.Context, fieldMana
 		}
 	}
 
-	_, err = l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).Apply(ctx, desired, metav1.ApplyOptions{
+	_, err = l.OperatorClient.LeaderWorkerSetOperators().Apply(ctx, desired, metav1.ApplyOptions{
 		Force:        true,
 		FieldManager: fieldManager,
 	})
@@ -148,10 +147,10 @@ func (l *LeaderWorkerSetClient) ApplyOperatorStatus(ctx context.Context, fieldMa
 	desiredStatus := &leaderworkersetoperatorv1.LeaderWorkerSetOperatorStatusApplyConfiguration{
 		OperatorStatusApplyConfiguration: *applyConfiguration,
 	}
-	desired := leaderworkersetoperatorv1.LeaderWorkerSetOperator(OperatorConfigName, l.OperatorNamespace)
+	desired := leaderworkersetoperatorv1.LeaderWorkerSetOperator(OperatorConfigName)
 	desired.WithStatus(desiredStatus)
 
-	instance, err := l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
+	instance, err := l.OperatorClient.LeaderWorkerSetOperators().Get(ctx, OperatorConfigName, metav1.GetOptions{})
 	switch {
 	case apierrors.IsNotFound(err):
 		// do nothing and proceed with the apply
@@ -173,7 +172,7 @@ func (l *LeaderWorkerSetClient) ApplyOperatorStatus(ctx context.Context, fieldMa
 		}
 	}
 
-	_, err = l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).ApplyStatus(ctx, desired, metav1.ApplyOptions{
+	_, err = l.OperatorClient.LeaderWorkerSetOperators().ApplyStatus(ctx, desired, metav1.ApplyOptions{
 		Force:        true,
 		FieldManager: fieldManager,
 	})
@@ -189,6 +188,6 @@ func (l *LeaderWorkerSetClient) PatchOperatorStatus(ctx context.Context, jsonPat
 	if err != nil {
 		return err
 	}
-	_, err = l.OperatorClient.LeaderWorkerSetOperators(l.OperatorNamespace).Patch(ctx, OperatorConfigName, types.JSONPatchType, jsonPatchBytes, metav1.PatchOptions{}, "/status")
+	_, err = l.OperatorClient.LeaderWorkerSetOperators().Patch(ctx, OperatorConfigName, types.JSONPatchType, jsonPatchBytes, metav1.PatchOptions{}, "/status")
 	return err
 }
