@@ -26,8 +26,8 @@ type FakeOpenShiftOperatorV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeOpenShiftOperatorV1) LeaderWorkerSetOperators(namespace string) v1.LeaderWorkerSetOperatorInterface {
-	return newFakeLeaderWorkerSetOperators(c, namespace)
+func (c *FakeOpenShiftOperatorV1) LeaderWorkerSetOperators() v1.LeaderWorkerSetOperatorInterface {
+	return newFakeLeaderWorkerSetOperators(c)
 }
 
 // RESTClient returns a RESTClient that is used to communicate

@@ -29,11 +29,11 @@ type fakeLeaderWorkerSetOperators struct {
 	Fake *FakeOpenShiftOperatorV1
 }
 
-func newFakeLeaderWorkerSetOperators(fake *FakeOpenShiftOperatorV1, namespace string) typedleaderworkersetoperatorv1.LeaderWorkerSetOperatorInterface {
+func newFakeLeaderWorkerSetOperators(fake *FakeOpenShiftOperatorV1) typedleaderworkersetoperatorv1.LeaderWorkerSetOperatorInterface {
 	return &fakeLeaderWorkerSetOperators{
 		gentype.NewFakeClientWithListAndApply[*v1.LeaderWorkerSetOperator, *v1.LeaderWorkerSetOperatorList, *leaderworkersetoperatorv1.LeaderWorkerSetOperatorApplyConfiguration](
 			fake.Fake,
-			namespace,
+			"",
 			v1.SchemeGroupVersion.WithResource("leaderworkersetoperators"),
 			v1.SchemeGroupVersion.WithKind("LeaderWorkerSetOperator"),
 			func() *v1.LeaderWorkerSetOperator { return &v1.LeaderWorkerSetOperator{} },

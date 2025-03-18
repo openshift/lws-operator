@@ -29,8 +29,9 @@ type LeaderWorkerSetOperatorLister interface {
 	// List lists all LeaderWorkerSetOperators in the indexer.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*leaderworkersetoperatorv1.LeaderWorkerSetOperator, err error)
-	// LeaderWorkerSetOperators returns an object that can list and get LeaderWorkerSetOperators.
-	LeaderWorkerSetOperators(namespace string) LeaderWorkerSetOperatorNamespaceLister
+	// Get retrieves the LeaderWorkerSetOperator from the index for a given name.
+	// Objects returned here must be treated as read-only.
+	Get(name string) (*leaderworkersetoperatorv1.LeaderWorkerSetOperator, error)
 	LeaderWorkerSetOperatorListerExpansion
 }
 
@@ -42,27 +43,4 @@ type leaderWorkerSetOperatorLister struct {
 // NewLeaderWorkerSetOperatorLister returns a new LeaderWorkerSetOperatorLister.
 func NewLeaderWorkerSetOperatorLister(indexer cache.Indexer) LeaderWorkerSetOperatorLister {
 	return &leaderWorkerSetOperatorLister{listers.New[*leaderworkersetoperatorv1.LeaderWorkerSetOperator](indexer, leaderworkersetoperatorv1.Resource("leaderworkersetoperator"))}
-}
-
-// LeaderWorkerSetOperators returns an object that can list and get LeaderWorkerSetOperators.
-func (s *leaderWorkerSetOperatorLister) LeaderWorkerSetOperators(namespace string) LeaderWorkerSetOperatorNamespaceLister {
-	return leaderWorkerSetOperatorNamespaceLister{listers.NewNamespaced[*leaderworkersetoperatorv1.LeaderWorkerSetOperator](s.ResourceIndexer, namespace)}
-}
-
-// LeaderWorkerSetOperatorNamespaceLister helps list and get LeaderWorkerSetOperators.
-// All objects returned here must be treated as read-only.
-type LeaderWorkerSetOperatorNamespaceLister interface {
-	// List lists all LeaderWorkerSetOperators in the indexer for a given namespace.
-	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*leaderworkersetoperatorv1.LeaderWorkerSetOperator, err error)
-	// Get retrieves the LeaderWorkerSetOperator from the indexer for a given namespace and name.
-	// Objects returned here must be treated as read-only.
-	Get(name string) (*leaderworkersetoperatorv1.LeaderWorkerSetOperator, error)
-	LeaderWorkerSetOperatorNamespaceListerExpansion
-}
-
-// leaderWorkerSetOperatorNamespaceLister implements the LeaderWorkerSetOperatorNamespaceLister
-// interface.
-type leaderWorkerSetOperatorNamespaceLister struct {
-	listers.ResourceIndexer[*leaderworkersetoperatorv1.LeaderWorkerSetOperator]
 }

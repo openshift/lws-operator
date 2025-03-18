@@ -39,5 +39,5 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 
 // LeaderWorkerSetOperators returns a LeaderWorkerSetOperatorInformer.
 func (v *version) LeaderWorkerSetOperators() LeaderWorkerSetOperatorInformer {
-	return &leaderWorkerSetOperatorInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+	return &leaderWorkerSetOperatorInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

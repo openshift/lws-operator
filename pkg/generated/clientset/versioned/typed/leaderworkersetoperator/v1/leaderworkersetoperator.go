@@ -31,7 +31,7 @@ import (
 // LeaderWorkerSetOperatorsGetter has a method to return a LeaderWorkerSetOperatorInterface.
 // A group's client should implement this interface.
 type LeaderWorkerSetOperatorsGetter interface {
-	LeaderWorkerSetOperators(namespace string) LeaderWorkerSetOperatorInterface
+	LeaderWorkerSetOperators() LeaderWorkerSetOperatorInterface
 }
 
 // LeaderWorkerSetOperatorInterface has methods to work with LeaderWorkerSetOperator resources.
@@ -58,13 +58,13 @@ type leaderWorkerSetOperators struct {
 }
 
 // newLeaderWorkerSetOperators returns a LeaderWorkerSetOperators
-func newLeaderWorkerSetOperators(c *OpenShiftOperatorV1Client, namespace string) *leaderWorkerSetOperators {
+func newLeaderWorkerSetOperators(c *OpenShiftOperatorV1Client) *leaderWorkerSetOperators {
 	return &leaderWorkerSetOperators{
 		gentype.NewClientWithListAndApply[*leaderworkersetoperatorv1.LeaderWorkerSetOperator, *leaderworkersetoperatorv1.LeaderWorkerSetOperatorList, *applyconfigurationleaderworkersetoperatorv1.LeaderWorkerSetOperatorApplyConfiguration](
 			"leaderworkersetoperators",
 			c.RESTClient(),
 			scheme.ParameterCodec,
-			namespace,
+			"",
 			func() *leaderworkersetoperatorv1.LeaderWorkerSetOperator {
 				return &leaderworkersetoperatorv1.LeaderWorkerSetOperator{}
 			},

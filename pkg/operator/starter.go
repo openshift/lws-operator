@@ -63,17 +63,16 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	)
 
 	leaderWorkerSetOperatorClient := &operatorclient.LeaderWorkerSetClient{
-		Ctx:               ctx,
-		SharedInformer:    operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators().Informer(),
-		Lister:            operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators().Lister(),
-		OperatorClient:    operatorConfigClient.OpenShiftOperatorV1(),
-		OperatorNamespace: namespace,
+		Ctx:            ctx,
+		SharedInformer: operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators().Informer(),
+		Lister:         operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators().Lister(),
+		OperatorClient: operatorConfigClient.OpenShiftOperatorV1(),
 	}
 
 	targetConfigReconciler := NewTargetConfigReconciler(
 		os.Getenv("RELATED_IMAGE_OPERAND_IMAGE"),
 		namespace,
-		operatorConfigClient.OpenShiftOperatorV1().LeaderWorkerSetOperators(namespace),
+		operatorConfigClient.OpenShiftOperatorV1().LeaderWorkerSetOperators(),
 		operatorConfigInformers.OpenShiftOperator().V1().LeaderWorkerSetOperators(),
 		kubeInformersForNamespaces,
 		leaderWorkerSetOperatorClient,

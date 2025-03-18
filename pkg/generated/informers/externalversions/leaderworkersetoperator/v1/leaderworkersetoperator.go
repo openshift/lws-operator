@@ -40,33 +40,32 @@ type LeaderWorkerSetOperatorInformer interface {
 type leaderWorkerSetOperatorInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
-	namespace        string
 }
 
 // NewLeaderWorkerSetOperatorInformer constructs a new informer for LeaderWorkerSetOperator type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewLeaderWorkerSetOperatorInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredLeaderWorkerSetOperatorInformer(client, namespace, resyncPeriod, indexers, nil)
+func NewLeaderWorkerSetOperatorInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredLeaderWorkerSetOperatorInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredLeaderWorkerSetOperatorInformer constructs a new informer for LeaderWorkerSetOperator type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredLeaderWorkerSetOperatorInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredLeaderWorkerSetOperatorInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.OpenShiftOperatorV1().LeaderWorkerSetOperators(namespace).List(context.TODO(), options)
+				return client.OpenShiftOperatorV1().LeaderWorkerSetOperators().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.OpenShiftOperatorV1().LeaderWorkerSetOperators(namespace).Watch(context.TODO(), options)
+				return client.OpenShiftOperatorV1().LeaderWorkerSetOperators().Watch(context.TODO(), options)
 			},
 		},
 		&apisleaderworkersetoperatorv1.LeaderWorkerSetOperator{},
@@ -76,7 +75,7 @@ func NewFilteredLeaderWorkerSetOperatorInformer(client versioned.Interface, name
 }
 
 func (f *leaderWorkerSetOperatorInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredLeaderWorkerSetOperatorInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewFilteredLeaderWorkerSetOperatorInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
 func (f *leaderWorkerSetOperatorInformer) Informer() cache.SharedIndexInformer {
