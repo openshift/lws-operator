@@ -34,8 +34,8 @@ type OpenShiftOperatorV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *OpenShiftOperatorV1Client) LeaderWorkerSetOperators(namespace string) LeaderWorkerSetOperatorInterface {
-	return newLeaderWorkerSetOperators(c, namespace)
+func (c *OpenShiftOperatorV1Client) LeaderWorkerSetOperators() LeaderWorkerSetOperatorInterface {
+	return newLeaderWorkerSetOperators(c)
 }
 
 // NewForConfig creates a new OpenShiftOperatorV1Client for the given config.

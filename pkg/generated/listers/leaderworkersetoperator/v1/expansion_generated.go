@@ -19,7 +19,3 @@ package v1
 // LeaderWorkerSetOperatorListerExpansion allows custom methods to be added to
 // LeaderWorkerSetOperatorLister.
 type LeaderWorkerSetOperatorListerExpansion interface{}
-
-// LeaderWorkerSetOperatorNamespaceListerExpansion allows custom methods to be added to
-// LeaderWorkerSetOperatorNamespaceLister.
-type LeaderWorkerSetOperatorNamespaceListerExpansion interface{}

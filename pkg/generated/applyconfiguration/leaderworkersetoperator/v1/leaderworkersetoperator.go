@@ -36,10 +36,9 @@ type LeaderWorkerSetOperatorApplyConfiguration struct {
 
 // LeaderWorkerSetOperator constructs a declarative configuration of the LeaderWorkerSetOperator type for use with
 // apply.
-func LeaderWorkerSetOperator(name, namespace string) *LeaderWorkerSetOperatorApplyConfiguration {
+func LeaderWorkerSetOperator(name string) *LeaderWorkerSetOperatorApplyConfiguration {
 	b := &LeaderWorkerSetOperatorApplyConfiguration{}
 	b.WithName(name)
-	b.WithNamespace(namespace)
 	b.WithKind("LeaderWorkerSetOperator")
 	b.WithAPIVersion("operator.openshift.io/v1")
 	return b
@@ -74,7 +73,6 @@ func extractLeaderWorkerSetOperator(leaderWorkerSetOperator *leaderworkersetoper
 		return nil, err
 	}
 	b.WithName(leaderWorkerSetOperator.Name)
-	b.WithNamespace(leaderWorkerSetOperator.Namespace)
 
 	b.WithKind("LeaderWorkerSetOperator")
 	b.WithAPIVersion("operator.openshift.io/v1")
