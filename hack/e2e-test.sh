@@ -23,6 +23,34 @@ function cert_manager_deploy {
       oc -n cert-manager wait --for condition=ready pod -l app.kubernetes.io/instance=cert-manager --timeout=2m
 }
 
+function deploy_lws_operator {
+      if [ -z "$KUBECONFIG" ]; then
+        echo "KUBECONFIG is empty"
+        exit 1
+      fi
+      if [ -z "$NAMESPACE" ]; then
+        echo "NAMESPACE is empty"
+        exit 1
+      fi
+      if [ -z "$RELATED_IMAGE_OPERAND_IMAGE" ]; then
+        echo "RELATED_IMAGE_OPERAND_IMAGE is empty"
+        exit 1
+      fi
+      if [ -z "$OPERATOR_IMAGE" ]; then
+        echo "OPERATOR_IMAGE is empty"
+        exit 1
+      fi
 
+      echo "Define operator and operand images built in CI"
+      sed -i "s|\${OPERAND_IMAGE}|$RELATED_IMAGE_OPERAND_IMAGE|g" deploy/05_deployment.yaml
+      sed -i "s|\${OPERATOR_IMAGE}|$OPERATOR_IMAGE|g" deploy/05_deployment.yaml
+
+      echo "Apply the resources under deploy directory"
+      oc apply -f deploy/ --server-side
+      echo "Wait for the deployments to be available"
+      oc wait deployment openshift-lws-operator -n openshift-lws-operator --for=condition=Available --timeout=5m
+      oc wait deployment lws-controller-manager -n openshift-lws-operator --for=condition=Available --timeout=5m
+}
 
 cert_manager_deploy
+deploy_lws_operator
