@@ -18,6 +18,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+SCRIPT_ROOT="$(realpath "$(dirname "$(readlink -f "$0")")"/..)"
+
 function cert_manager_deploy {
       oc apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml
       oc -n cert-manager wait --for condition=ready pod -l app.kubernetes.io/instance=cert-manager --timeout=2m
@@ -26,10 +28,6 @@ function cert_manager_deploy {
 function deploy_lws_operator {
       if [ -z "$KUBECONFIG" ]; then
         echo "KUBECONFIG is empty"
-        exit 1
-      fi
-      if [ -z "$NAMESPACE" ]; then
-        echo "NAMESPACE is empty"
         exit 1
       fi
       if [ -z "$RELATED_IMAGE_OPERAND_IMAGE" ]; then
@@ -46,11 +44,41 @@ function deploy_lws_operator {
       sed -i "s|\${OPERATOR_IMAGE}|$OPERATOR_IMAGE|g" deploy/05_deployment.yaml
 
       echo "Apply the resources under deploy directory"
-      oc apply -f deploy/ --server-side
+      # Error is totally expected in here. Because we are applying
+      # ordered resources in an unordered way. A few simply retry should work.
+      RETRY_COUNT=0
+      while true; do
+          if oc apply -f deploy/ --server-side; then
+              break
+          else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              if [[ $RETRY_COUNT -ge 3 ]]; then
+                  exit 1
+              fi
+              sleep 1
+          fi
+      done
       echo "Wait for the deployments to be available"
+      oc wait deployment openshift-lws-operator -n openshift-lws-operator --for=create --timeout=2m
       oc wait deployment openshift-lws-operator -n openshift-lws-operator --for=condition=Available --timeout=5m
+      oc wait deployment lws-controller-manager -n openshift-lws-operator --for=create --timeout=2m
       oc wait deployment lws-controller-manager -n openshift-lws-operator --for=condition=Available --timeout=5m
+}
+
+function run_e2e_operator_tests() {
+  echo "Running e2e tests for operator"
+  $GINKGO -v ./test/e2e/...
+}
+
+function run_e2e_operand_tests() {
+  echo "Running e2e tests for operand"
+  CLONE_PATH="$(mktemp -d)"
+  BRANCH="$(cat "${SCRIPT_ROOT}/operand-git-ref")"
+  git clone -b "${BRANCH}" "https://github.com/openshift/kubernetes-sigs-lws" "${CLONE_PATH}"
+  LWS_NAMESPACE=openshift-lws-operator $GINKGO -v /"${CLONE_PATH}"/test/e2e/...
 }
 
 cert_manager_deploy
 deploy_lws_operator
+run_e2e_operator_tests
+run_e2e_operand_tests
