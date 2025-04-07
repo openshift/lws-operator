@@ -64,3 +64,7 @@ clean:
 	$(RM) ./lws-operator
 	$(RM) -r ./_tmp
 .PHONY: clean
+
+test-e2e:
+	hack/e2e-test.sh
+.PHONY: test-e2e
