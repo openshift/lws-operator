@@ -20,6 +20,14 @@ set -o pipefail
 
 SCRIPT_ROOT="$(realpath "$(dirname "$(readlink -f "$0")")"/..)"
 
+# Upstream tests use kubectl instead of oc.
+# We need to symlink oc to kubectl
+KUBECTL_PATH="$(mktemp -d)"
+export PATH=${KUBECTL_PATH}:${PATH}
+if ! which kubectl >/dev/null; then
+  ln -s "$(which oc)" "${KUBECTL_PATH}/kubectl"
+fi
+
 function cert_manager_deploy {
       oc apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml
       oc -n cert-manager wait --for condition=ready pod -l app.kubernetes.io/instance=cert-manager --timeout=2m
