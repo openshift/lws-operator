@@ -66,6 +66,7 @@ verify-controller-manifests:
 clean:
 	$(RM) ./lws-operator
 	$(RM) -r ./_tmp
+	$(RM) -r ./_output
 .PHONY: clean
 
 GINKGO = $(shell pwd)/_output/tools/bin/ginkgo
