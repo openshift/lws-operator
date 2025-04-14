@@ -88,9 +88,9 @@ function run_e2e_operand_tests() {
 
 cert_manager_deploy
 deploy_lws_operator
-if [ "$RUN_OPERATOR_TEST" == 'true' ]; then
+if [ "${RUN_OPERATOR_TEST:-}" == 'true' ]; then
   run_e2e_operator_tests
 fi
-if [ "$RUN_OPERAND_TEST" == 'true' ]; then
+if [ "${RUN_OPERAND_TEST:-}" == 'true' ]; then
   run_e2e_operand_tests
 fi
