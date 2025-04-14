@@ -28,32 +28,32 @@ if ! which kubectl >/dev/null; then
   ln -s "$(which oc)" "${KUBECTL_PATH}/kubectl"
 fi
 
+if [ -z "$KUBECONFIG" ]; then
+  echo "KUBECONFIG is empty"
+  exit 1
+fi
+if [ -z "$RELATED_IMAGE_OPERAND_IMAGE" ]; then
+  echo "RELATED_IMAGE_OPERAND_IMAGE is empty"
+  exit 1
+fi
+if [ -z "$OPERATOR_IMAGE" ]; then
+  echo "OPERATOR_IMAGE is empty"
+  exit 1
+fi
+
 function cert_manager_deploy {
       oc apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml
       oc -n cert-manager wait --for condition=ready pod -l app.kubernetes.io/instance=cert-manager --timeout=2m
 }
 
 function deploy_lws_operator {
-      if [ -z "$KUBECONFIG" ]; then
-        echo "KUBECONFIG is empty"
-        exit 1
-      fi
-      if [ -z "$RELATED_IMAGE_OPERAND_IMAGE" ]; then
-        echo "RELATED_IMAGE_OPERAND_IMAGE is empty"
-        exit 1
-      fi
-      if [ -z "$OPERATOR_IMAGE" ]; then
-        echo "OPERATOR_IMAGE is empty"
-        exit 1
-      fi
-
       echo "Define operator and operand images built in CI"
-      sed -i "s|\${OPERAND_IMAGE}|$RELATED_IMAGE_OPERAND_IMAGE|g" deploy/05_deployment.yaml
-      sed -i "s|\${OPERATOR_IMAGE}|$OPERATOR_IMAGE|g" deploy/05_deployment.yaml
+      sed -i -e "s|\${OPERAND_IMAGE}|$RELATED_IMAGE_OPERAND_IMAGE|g" -e "s|\${OPERATOR_IMAGE}|$OPERATOR_IMAGE|g" deploy/05_deployment.yaml
 
       echo "Apply the resources under deploy directory"
       # Error is totally expected in here. Because we are applying
-      # ordered resources in an unordered way. A few simply retry should work.
+      # ordered resources in an unordered way (i.e. CRD should be ready when CR is applied).
+      # A few simply retry should work.
       RETRY_COUNT=0
       while true; do
           if oc apply -f deploy/ --server-side; then
@@ -88,5 +88,9 @@ function run_e2e_operand_tests() {
 
 cert_manager_deploy
 deploy_lws_operator
-run_e2e_operator_tests
-run_e2e_operand_tests
+if [ "$RUN_OPERATOR_TEST" == 'true' ]; then
+  run_e2e_operator_tests
+fi
+if [ "$RUN_OPERAND_TEST" == 'true' ]; then
+  run_e2e_operand_tests
+fi

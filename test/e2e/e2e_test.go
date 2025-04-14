@@ -38,20 +38,18 @@ var _ = Describe("LWS Operator", Ordered, func() {
 		lwsOperators, err := clients.LWSOperatorClient.List(ctx, metav1.ListOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(lwsOperators.Items)).To(Equal(1))
+		Expect(lwsOperators.Items).To(HaveLen(1))
 
 		By("checking no degraded condition exists")
 		degraded := false
-		for _, lwsOperator := range lwsOperators.Items {
-			for _, condition := range lwsOperator.Status.Conditions {
-				if strings.HasSuffix(condition.Type, v1.OperatorStatusTypeDegraded) {
-					if condition.Status == v1.ConditionTrue {
-						degraded = true
-					}
+		for _, condition := range lwsOperators.Items[0].Status.Conditions {
+			if strings.HasSuffix(condition.Type, v1.OperatorStatusTypeDegraded) {
+				if condition.Status == v1.ConditionTrue {
+					degraded = true
 				}
 			}
 		}
-		Expect(degraded).NotTo(BeTrue())
+		Expect(degraded).NotTo(BeTrue(), "degraded condition exists: %+v", lwsOperators.Items[0].Status.Conditions)
 
 		By("checking the availability condition exists")
 		Eventually(func() error {
@@ -62,17 +60,14 @@ var _ = Describe("LWS Operator", Ordered, func() {
 				return err
 			}
 
-			if len(lwsOperators.Items) == 0 {
-				return fmt.Errorf("no LWS operator condition found")
+			if len(lwsOperators.Items) != 1 {
+				return fmt.Errorf("unexpected number of LWSOperators %d", len(lwsOperators.Items))
 			}
 
 			By("checking available condition")
-			for _, lwsOperator := range lwsOperators.Items {
-				cond := v1helpers.FindOperatorCondition(lwsOperator.Status.Conditions, v1.OperatorStatusTypeAvailable)
-				if cond == nil || cond.Status != v1.ConditionTrue {
-					return fmt.Errorf("no LWS operator availabe condition found")
-				}
-				break
+			cond := v1helpers.FindOperatorCondition(lwsOperators.Items[0].Status.Conditions, v1.OperatorStatusTypeAvailable)
+			if cond == nil || cond.Status != v1.ConditionTrue {
+				return fmt.Errorf("LWS operator is not available")
 			}
 			return nil
 		}, 5*time.Minute, 5*time.Second).Should(Succeed(), "available condition is not found")
