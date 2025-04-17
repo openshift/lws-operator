@@ -49,7 +49,7 @@ var _ = Describe("LWS Operator", Ordered, func() {
 				}
 			}
 		}
-		Expect(degraded).NotTo(BeTrue(), "degraded condition exists: %+v", lwsOperators.Items[0].Status.Conditions)
+		Expect(degraded).To(BeFalse(), "degraded condition exists: %+v", lwsOperators.Items[0].Status.Conditions)
 
 		By("checking the availability condition exists")
 		Eventually(func() error {
