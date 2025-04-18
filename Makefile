@@ -4,6 +4,9 @@ all: build
 SOURCE_GIT_TAG ?=$(shell git describe --long --tags --abbrev=7 --match 'v[0-9]*' || echo 'v1.0.0-$(SOURCE_GIT_COMMIT)')
 SOURCE_GIT_COMMIT ?=$(shell git rev-parse --short "HEAD^{commit}" 2>/dev/null)
 
+# Use go.mod go version as a single source of truth of Ginkgo version.
+GINKGO_VERSION ?= $(shell go list -m -f '{{.Version}}' github.com/onsi/ginkgo/v2)
+
 # OS_GIT_VERSION is populated by ART
 # If building out of the ART pipeline, fallback to SOURCE_GIT_TAG
 ifndef OS_GIT_VERSION
@@ -63,4 +66,18 @@ verify-controller-manifests:
 clean:
 	$(RM) ./lws-operator
 	$(RM) -r ./_tmp
+	$(RM) -r ./_output
 .PHONY: clean
+
+GINKGO = $(shell pwd)/_output/tools/bin/ginkgo
+.PHONY: ginkgo
+ginkgo: ## Download ginkgo locally if necessary.
+	test -s $(shell pwd)/_output/tools/bin/ginkgo || GOFLAGS=-mod=readonly GOBIN=$(shell pwd)/_output/tools/bin go install github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
+
+test-e2e: ginkgo
+	RUN_OPERATOR_TEST=true GINKGO=$(GINKGO) hack/e2e-test.sh
+.PHONY: test-e2e
+
+test-e2e-operand: ginkgo
+	RUN_OPERAND_TEST=true GINKGO=$(GINKGO) hack/e2e-test.sh
+.PHONY: test-e2e

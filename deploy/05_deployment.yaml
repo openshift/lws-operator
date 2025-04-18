@@ -24,7 +24,7 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ "ALL" ]
-          image: quay.io/aguclu/lws-operator:test # quay.io/openshift/origin-lws-operator:latest
+          image: ${OPERATOR_IMAGE}
           volumeMounts:
             - name: tmp
               mountPath: "/tmp"
@@ -40,7 +40,7 @@ spec:
             - name: OPERATOR_NAME
               value: "openshift-lws-operator"
             - name: RELATED_IMAGE_OPERAND_IMAGE
-              value: quay.io/aguclu/lws:intcert # quay.io/openshift/origin-lws:latest, gcr.io/k8s-staging-lws/lws:main
+              value: ${OPERAND_IMAGE}
       serviceAccountName: openshift-lws-operator
       volumes:
         - name: tmp
