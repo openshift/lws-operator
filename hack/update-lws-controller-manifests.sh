@@ -56,7 +56,7 @@ pushd "${LWS_CONTROLLER_DIR}"
     # backup kustomization.yaml and edit the default values
     pushd "${LWS_CONTROLLER_DIR}/config/default"
       cp "${LWS_CONTROLLER_DIR}/config/default/kustomization.yaml" "${SCRIPT_ROOT}/_tmp/lws_kustomization.yaml.bak"
-      sed -i 's!#- path: webhookcainjection_patch.yaml!- path: webhookcainjection_patch.yaml!' "${LWS_CONTROLLER_DIR}/config/default/kustomization.yaml"
+      "${LWS_CONTROLLER_DIR}/bin/kustomize" edit add patch --path "webhookcainjection_patch.yaml"
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit set namespace "${LWS_NAMESPACE}"
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit add resource "../prometheus"
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit add resource "../certmanager"
@@ -64,7 +64,7 @@ pushd "${LWS_CONTROLLER_DIR}"
     popd
     pushd "${LWS_CONTROLLER_DIR}/config/crd"
       cp "${LWS_CONTROLLER_DIR}/config/crd/kustomization.yaml" "${SCRIPT_ROOT}/_tmp/lws_crd_kustomization.yaml.bak"
-      sed -i 's!#- path: patches/cainjection_in_leaderworkersets.yaml!- path: patches/cainjection_in_leaderworkersets.yaml!' "${LWS_CONTROLLER_DIR}/config/crd/kustomization.yaml"
+      "${LWS_CONTROLLER_DIR}/bin/kustomize" edit add patch --path "patches/cainjection_in_leaderworkersets.yaml"
     popd
     pushd "${LWS_CONTROLLER_DIR}/config/manager"
       cp "${LWS_CONTROLLER_DIR}//config/manager/kustomization.yaml" "${SCRIPT_ROOT}/_tmp/lws_components_manager_kustomization.yaml.bak"
