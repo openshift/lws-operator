@@ -81,3 +81,8 @@ test-e2e: ginkgo
 test-e2e-operand: ginkgo
 	RUN_OPERAND_TEST=true GINKGO=$(GINKGO) hack/e2e-test.sh
 .PHONY: test-e2e
+
+generate-bundle:
+	operator-sdk generate bundle --input-dir deploy --version 0.1.0 --channels=tech-preview --default-channel=tech-preview --package leader-worker-set --output-dir=.
+.PHONY: generate-bundle
+
