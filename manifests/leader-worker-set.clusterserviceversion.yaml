@@ -37,7 +37,7 @@ metadata:
     operatorframework.io/cluster-monitoring: "true"
     operatorframework.io/suggested-namespace: "openshift-lws-operator"
     console.openshift.io/operator-monitoring-default: "true"
-  name: leader-worker-set.v0.1.0
+  name: leader-worker-set.v1.0.0
   namespace: openshift-lws-operator
   labels:
     operatorframework.io/arch.amd64: supported
@@ -453,4 +453,4 @@ spec:
     name: lws
   - image: ${OPERATOR_IMAGE}
     name: lws-operator
-  version: 0.1.0
+  version: 1.0.0
