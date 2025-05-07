@@ -110,6 +110,9 @@ spec:
           VMs
         name: privileged-nested
         type: string
+      - default: snyk-secret
+        description: Snyk Token Secret Name
+        name: snyk-secret
     results:
       - description: ""
         name: IMAGE_URL
