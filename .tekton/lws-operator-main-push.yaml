@@ -116,6 +116,9 @@ spec:
           VMs
         name: privileged-nested
         type: string
+      - default: snyk-secret
+        description: Snyk Token Secret Name
+        name: snyk-secret
       - default:
           - linux/x86_64
           - linux/arm64
