@@ -60,6 +60,7 @@ pushd "${LWS_CONTROLLER_DIR}"
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit set namespace "${LWS_NAMESPACE}"
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit add resource "../prometheus"
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit add resource "../certmanager"
+      "${LWS_CONTROLLER_DIR}/bin/kustomize" edit add patch --path cert_metrics_manager_patch.yaml --kind Deployment
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit remove resource "../internalcert"
     popd
     pushd "${LWS_CONTROLLER_DIR}/config/crd"
@@ -67,14 +68,19 @@ pushd "${LWS_CONTROLLER_DIR}"
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit add patch --path "patches/cainjection_in_leaderworkersets.yaml"
     popd
     pushd "${LWS_CONTROLLER_DIR}/config/manager"
-      cp "${LWS_CONTROLLER_DIR}//config/manager/kustomization.yaml" "${SCRIPT_ROOT}/_tmp/lws_components_manager_kustomization.yaml.bak"
+      cp "${LWS_CONTROLLER_DIR}/config/manager/kustomization.yaml" "${SCRIPT_ROOT}/_tmp/lws_components_manager_kustomization.yaml.bak"
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit set image controller='${CONTROLLER_IMAGE}:latest'
+    popd
+    pushd "${LWS_CONTROLLER_DIR}/config/components/prometheus"
+      cp "${LWS_CONTROLLER_DIR}/config/components/prometheus/kustomization.yaml" "${SCRIPT_ROOT}/_tmp/lws_components_prometheus_kustomization.yaml.bak"
+      "${LWS_CONTROLLER_DIR}/bin/kustomize" edit add patch --path monitor_tls_patch.yaml --kind ServiceMonitor
     popd
     "${LWS_CONTROLLER_DIR}/bin/kustomize" build config/default -o "${LWS_ASSETS_DIR}"
     # restore back to the original state
     mv "${SCRIPT_ROOT}/_tmp/lws_kustomization.yaml.bak" "${LWS_CONTROLLER_DIR}/config/default/kustomization.yaml"
     mv "${SCRIPT_ROOT}/_tmp/lws_crd_kustomization.yaml.bak" "${LWS_CONTROLLER_DIR}/config/crd/kustomization.yaml"
-    mv  "${SCRIPT_ROOT}/_tmp/lws_components_manager_kustomization.yaml.bak" "${LWS_CONTROLLER_DIR}/config/manager/kustomization.yaml"
+    mv "${SCRIPT_ROOT}/_tmp/lws_components_manager_kustomization.yaml.bak" "${LWS_CONTROLLER_DIR}/config/manager/kustomization.yaml"
+    mv "${SCRIPT_ROOT}/_tmp/lws_components_prometheus_kustomization.yaml.bak" "${LWS_CONTROLLER_DIR}/config/components/prometheus/kustomization.yaml"
   git checkout "${ORIGINAL_GIT_BRANCH_OR_COMMIT}"
 popd
 
