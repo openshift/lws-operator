@@ -83,6 +83,6 @@ test-e2e-operand: ginkgo
 .PHONY: test-e2e
 
 generate-bundle:
-	operator-sdk generate bundle --input-dir deploy --version 0.1.0 --channels=tech-preview --default-channel=tech-preview --package leader-worker-set --output-dir=.
+	operator-sdk generate bundle --input-dir deploy --version 1.0.0 --channels=stable --default-channel=stable --package leader-worker-set --output-dir=.
 .PHONY: generate-bundle
 
