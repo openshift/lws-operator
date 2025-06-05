@@ -7,6 +7,10 @@ SOURCE_GIT_COMMIT ?=$(shell git rev-parse --short "HEAD^{commit}" 2>/dev/null)
 # Use go.mod go version as a single source of truth of Ginkgo version.
 GINKGO_VERSION ?= $(shell go list -m -f '{{.Version}}' github.com/onsi/ginkgo/v2)
 
+# golangci-lint variables
+GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
+GOLANGCI_LINT_VERSION ?= v1.62.2
+
 # OS_GIT_VERSION is populated by ART
 # If building out of the ART pipeline, fallback to SOURCE_GIT_TAG
 ifndef OS_GIT_VERSION
@@ -58,6 +62,16 @@ generate-controller-manifests:
 verify-codegen:
 	hack/verify-codegen.sh
 .PHONY: verify-codegen
+
+golangci-lint:
+	@[ -f $(GOLANGCI_LINT) ] || { \
+	set -e ;\
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) $(GOLANGCI_LINT_VERSION) ;\
+	}
+
+lint: golangci-lint ## Run golangci-lint linter 
+	$(GOLANGCI_LINT) run --fix --timeout 30m
+.PHONY: lint
 
 verify-controller-manifests:
 	hack/verify-lws-controller-manifests.sh
