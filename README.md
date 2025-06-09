@@ -99,3 +99,19 @@ spec:
   logLevel: Normal
   operatorLogLevel: Normal
 ```
+
+## E2E Test
+Set kubeconfig to point to a OCP cluster
+
+Set OPERATOR_IMAGE to point to your operator image
+
+Set OPERAND_IMAGE to point to your lws image you want to test
+
+Run operator e2e test
+```sh
+make test-e2e
+```
+Run operand e2e test
+```sh
+make test-e2e-operand
+```
