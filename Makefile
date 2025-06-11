@@ -7,6 +7,9 @@ SOURCE_GIT_COMMIT ?=$(shell git rev-parse --short "HEAD^{commit}" 2>/dev/null)
 # Use go.mod go version as a single source of truth of Ginkgo version.
 GINKGO_VERSION ?= $(shell go list -m -f '{{.Version}}' github.com/onsi/ginkgo/v2)
 
+GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
+GOLANGCI_LINT_VERSION ?= v2.0.2
+
 # OS_GIT_VERSION is populated by ART
 # If building out of the ART pipeline, fallback to SOURCE_GIT_TAG
 ifndef OS_GIT_VERSION
@@ -43,6 +46,17 @@ regen-crd:
 	./_output/tools/bin/controller-gen crd paths=./pkg/apis/leaderworkersetoperator/v1/... output:crd:dir=./manifests
 	mv manifests/operator.openshift.io_leaderworkersetoperators.yaml manifests/leaderworkerset-operator.crd.yaml
 	cp manifests/leaderworkerset-operator.crd.yaml deploy/00_lws-operator.crd.yaml
+
+golangci-lint:
+		@[ -f $(GOLANGCI_LINT) ] || { \
+    	set -e ;\
+    	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) $(GOLANGCI_LINT_VERSION) ;\
+    	}
+.PHONY: golangci-lint
+
+lint: golangci-lint
+	$(GOLANGCI_LINT) run --verbose --print-resources-usage
+.PHONY: lint
 
 generate: generate-clients regen-crd generate-controller-manifests
 .PHONY: generate
