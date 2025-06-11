@@ -83,6 +83,17 @@ function run_e2e_operand_tests() {
   CLONE_PATH="$(mktemp -d)"
   BRANCH="$(cat "${SCRIPT_ROOT}/operand-git-ref")"
   git clone -b "${BRANCH}" "https://github.com/openshift/kubernetes-sigs-lws" "${CLONE_PATH}"
+  pushd "${CLONE_PATH}"
+    GO_VERSION=$(grep "^go " go.mod | awk '{print $2}')
+    # extract the version in "1.24" format
+    MAJOR_GO_VERSION=$(echo "${GO_VERSION}" | awk -F'.' '{print $1"."$2}')
+    echo "GO_VERSION: $GO_VERSION MAJOR_GO_VERSION: $MAJOR_GO_VERSION"
+    if ! go version | grep -q "go${MAJOR_GO_VERSION}"; then
+      wget https://go.dev/dl/go"${GO_VERSION}".linux-amd64.tar.gz
+      tar -xzf "go${GO_VERSION}.linux-amd64.tar.gz"
+      export PATH=${CLONE_PATH}/go/bin:$PATH
+    fi
+  popd
   LWS_NAMESPACE=openshift-lws-operator $GINKGO -v /"${CLONE_PATH}"/test/e2e/...
 }
 
