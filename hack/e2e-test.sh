@@ -41,6 +41,16 @@ if [ -z "$OPERATOR_IMAGE" ]; then
   exit 1
 fi
 
+CLONE_PATH=""
+
+function cleanup() {
+  if [ -n "$CLONE_PATH" ]; then
+    rm -rf "${CLONE_PATH}"
+  fi
+  rm -rf "${KUBECTL_PATH}"
+}
+trap cleanup EXIT SIGINT TERM
+
 function cert_manager_deploy {
       oc apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml
       oc -n cert-manager wait --for condition=ready pod -l app.kubernetes.io/instance=cert-manager --timeout=2m
