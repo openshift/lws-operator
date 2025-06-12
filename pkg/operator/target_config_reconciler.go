@@ -451,7 +451,10 @@ func (c *TargetConfigReconciler) manageCertificateWebhookCR(ctx context.Context,
 		dnsNames[i] = strings.Replace(dnsNames[i], "SERVICE_NAME", service.Name, 1)
 		dnsNames[i] = strings.Replace(dnsNames[i], "SERVICE_NAMESPACE", c.namespace, 1)
 	}
-	unstructured.SetNestedStringSlice(issuerAsUnstructured.Object, dnsNames, "spec", "dnsNames")
+	err = unstructured.SetNestedStringSlice(issuerAsUnstructured.Object, dnsNames, "spec", "dnsNames")
+	if err != nil {
+		return nil, false, err
+	}
 	return resourceapply.ApplyUnstructuredResourceImproved(ctx, c.dynamicClient, c.eventRecorder, issuerAsUnstructured, c.resourceCache, gvr, nil, nil)
 }
 
@@ -483,7 +486,10 @@ func (c *TargetConfigReconciler) manageCertificateMetricsCR(ctx context.Context,
 		dnsNames[i] = strings.Replace(dnsNames[i], "SERVICE_NAME", service.Name, 1)
 		dnsNames[i] = strings.Replace(dnsNames[i], "SERVICE_NAMESPACE", c.namespace, 1)
 	}
-	unstructured.SetNestedStringSlice(issuerAsUnstructured.Object, dnsNames, "spec", "dnsNames")
+	err = unstructured.SetNestedStringSlice(issuerAsUnstructured.Object, dnsNames, "spec", "dnsNames")
+	if err != nil {
+		return nil, false, err
+	}
 	return resourceapply.ApplyUnstructuredResourceImproved(ctx, c.dynamicClient, c.eventRecorder, issuerAsUnstructured, c.resourceCache, gvr, nil, nil)
 }
 
@@ -602,9 +608,9 @@ func (c *TargetConfigReconciler) manageServiceMonitor(ctx context.Context, owner
 		endpoint.TLSConfig.ServerName = ptr.To(strings.Replace(ptr.Deref(endpoint.TLSConfig.ServerName, ""), "SERVICE_NAME", service.Name, 1))
 		endpoint.TLSConfig.ServerName = ptr.To(strings.Replace(ptr.Deref(endpoint.TLSConfig.ServerName, ""), "SERVICE_NAMESPACE", service.Namespace, 1))
 		// clear out the references
-		endpoint.TLSConfig.SafeTLSConfig.Cert.Secret = nil
-		endpoint.TLSConfig.SafeTLSConfig.Cert.ConfigMap = nil
-		endpoint.TLSConfig.SafeTLSConfig.KeySecret = nil
+		endpoint.TLSConfig.Cert.Secret = nil
+		endpoint.TLSConfig.Cert.ConfigMap = nil
+		endpoint.TLSConfig.KeySecret = nil
 		// set mounted secret in the openshift-monitoring prometheus
 		endpoint.TLSConfig.CertFile = fmt.Sprintf("%s/%s", PrometheusClientCertsPath, "tls.crt")
 		endpoint.TLSConfig.KeyFile = fmt.Sprintf("%s/%s", PrometheusClientCertsPath, "tls.key")
