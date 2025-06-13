@@ -1,0 +1,39 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - asciicheck
+    - bidichk
+    - dogsled
+    - durationcheck
+    - errcheck
+    - goprintffuncname
+    - govet
+    - importas
+    - ineffassign
+    - makezero
+    - nilerr
+    - nolintlint
+    - staticcheck
+    - unused
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - vendor/
+      - zz_generated*
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+run:
+  timeout: 5m
+  modules-download-mode: vendor
