@@ -91,7 +91,7 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 
 	klog.Infof("Starting log level controller")
 	go logLevelController.Run(ctx, 1)
-	klog.Infof("Starting target config reconciler")
+	klog.Infof("Starting target config reconciler. Test")
 	go targetConfigReconciler.Run(ctx, 1)
 
 	<-ctx.Done()
