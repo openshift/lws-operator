@@ -105,7 +105,7 @@ Set kubeconfig to point to a OCP cluster
 
 Set OPERATOR_IMAGE to point to your operator image
 
-Set OPERAND_IMAGE to point to your lws image you want to test
+Set RELATED_IMAGE_OPERAND_IMAGE to point to your lws image you want to test
 
 Run operator e2e test
 ```sh
