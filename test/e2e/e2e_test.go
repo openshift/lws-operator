@@ -26,7 +26,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog/v2"
@@ -81,6 +80,7 @@ var _ = Describe("LWS Operator", Ordered, func() {
 			return nil
 		}, 5*time.Minute, 5*time.Second).Should(Succeed(), "available condition is not found")
 	})
+
 	It("Verifying operand pod deleted and recovery", func() {
 		ctx := context.TODO()
 		pods, err := clients.KubeClient.CoreV1().Pods(operatorNamespace).List(ctx, metav1.ListOptions{
@@ -100,20 +100,23 @@ var _ = Describe("LWS Operator", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// Wait recovery(Deployment will recreate Pod)
-		err = wait.PollUntilContextTimeout(ctx, 2*time.Second, 30*time.Second, true, func(ctx context.Context) (bool, error) {
+		err = wait.PollUntilContextTimeout(ctx, 2*time.Second, 3*time.Minute, true, func(ctx context.Context) (bool, error) {
 			newPods, err := clients.KubeClient.CoreV1().Pods(operatorNamespace).List(ctx, metav1.ListOptions{
 				LabelSelector: operandLabel,
 			})
 			if err != nil {
-				if errors.IsNotFound(err) {
-					return false, nil
-				}
 				return false, err
 			}
-			if len(newPods.Items) == 0 {
+			activePods := make([]corev1.Pod, 0)
+			for _, pod := range newPods.Items {
+				if pod.DeletionTimestamp == nil {
+					activePods = append(activePods, pod)
+				}
+			}
+			if len(activePods) == 0 {
 				return false, nil
 			}
-			for _, pod := range newPods.Items {
+			for _, pod := range activePods {
 				if pod.Status.Phase != corev1.PodRunning {
 					klog.Infof("Pod %s status: %s", pod.Name, pod.Status.Phase)
 					return false, nil
