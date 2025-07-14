@@ -36,7 +36,7 @@ IMAGE_REGISTRY := registry.ci.openshift.org
 # $2 - image ref
 # $3 - Dockerfile path
 # $4 - context directory for image build
-$(call build-image,ocp-lws-operator,$(IMAGE_REGISTRY)/ocp/4.19:lws-operator, ./Dockerfile,.)
+$(call build-image,ocp-lws-operator,$(IMAGE_REGISTRY)/ocp/4.20:lws-operator, ./Dockerfile,.)
 
 $(call verify-golang-versions,Dockerfile)
 
