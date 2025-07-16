@@ -36,16 +36,14 @@ IMAGE_REGISTRY := registry.ci.openshift.org
 # $2 - image ref
 # $3 - Dockerfile path
 # $4 - context directory for image build
-$(call build-image,ocp-lws-operator,$(IMAGE_REGISTRY)/ocp/4.19:lws-operator, ./Dockerfile,.)
+$(call build-image,ocp-lws-operator,$(IMAGE_REGISTRY)/ocp/4.20:lws-operator, ./Dockerfile,.)
 
 $(call verify-golang-versions,Dockerfile)
 
 regen-crd:
 	go build -o _output/tools/bin/controller-gen ./vendor/sigs.k8s.io/controller-tools/cmd/controller-gen
-	rm manifests/leaderworkerset-operator.crd.yaml
 	./_output/tools/bin/controller-gen crd paths=./pkg/apis/leaderworkersetoperator/v1/... output:crd:dir=./manifests
-	mv manifests/operator.openshift.io_leaderworkersetoperators.yaml manifests/leaderworkerset-operator.crd.yaml
-	cp manifests/leaderworkerset-operator.crd.yaml deploy/00_lws-operator.crd.yaml
+	cp manifests/operator.openshift.io_leaderworkersetoperators.yaml deploy/00_lws-operator.crd.yaml
 
 golangci-lint:
 		@[ -f $(GOLANGCI_LINT) ] || { \
@@ -70,7 +68,7 @@ generate-controller-manifests:
 .PHONY: generate-controller-manifests
 
 verify-codegen:
-	hack/verify-codegen.sh
+	GO=GO111MODULE=on GOFLAGS=-mod=readonly hack/verify-codegen.sh
 .PHONY: verify-codegen
 
 verify-controller-manifests:
