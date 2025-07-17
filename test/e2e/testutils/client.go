@@ -35,6 +35,7 @@ type TestClients struct {
 	APIExtClient      *apiextv1.ApiextensionsV1Client
 	DynamicClient     dynamic.Interface
 	LWSOperatorClient leaderworkersetoperatorv1clientset.LeaderWorkerSetOperatorInterface
+	RestConfig        *rest.Config
 }
 
 func NewTestClients() *TestClients {
@@ -49,6 +50,7 @@ func NewTestClients() *TestClients {
 		LWSOperatorClient: getLWSOperatorClient(config),
 		APIExtClient:      getAPIExtClient(config),
 		DynamicClient:     getDynamicClient(config),
+		RestConfig:        config,
 	}
 }
 

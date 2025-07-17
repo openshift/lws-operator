@@ -17,6 +17,7 @@ limitations under the License.
 package e2e
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"strings"
@@ -28,16 +29,23 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/ptr"
 
 	v1 "github.com/openshift/api/operator/v1"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
+	"github.com/openshift/lws-operator/pkg/generated/clientset/versioned/scheme"
+	"github.com/openshift/lws-operator/test/e2e/testutils"
 )
 
 const (
-	operatorNamespace = "openshift-lws-operator"
-	operandLabel      = "control-plane=controller-manager"
+	operatorNamespace               = "openshift-lws-operator"
+	operandLabel                    = "control-plane=controller-manager"
+	operatorReadyTime time.Duration = 3 * time.Minute
+	operatorPoll                    = 10 * time.Second
 )
 
 var _ = Describe("LWS Operator", Ordered, func() {
@@ -127,4 +135,82 @@ var _ = Describe("LWS Operator", Ordered, func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 	})
+
+	It("should expose metrics endpoint with TLS", func() {
+		var (
+			err                error
+			podName            = "curl-metrics-test"
+			containerName      = "curl-metrics"
+			certMountPath      = "/etc/lws/metrics/certs"
+			metricsServiceName = "lws-controller-manager-metrics-service"
+		)
+
+		By("Creating curl test pod")
+		ctx := context.TODO()
+		curlPod := testutils.MakeCurlMetricsPod(operatorNamespace)
+		defer func() {
+			err = clients.KubeClient.CoreV1().Pods(operatorNamespace).Delete(context.TODO(), "curl-metrics-test", metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred(), "failed to delete curl metrics test pod")
+		}()
+		_, err = clients.KubeClient.CoreV1().Pods(operatorNamespace).Create(ctx, &curlPod.Pod, metav1.CreateOptions{})
+		Expect(err).NotTo(HaveOccurred(), "failed to create curl metrics test pod")
+
+		Eventually(func() error {
+			pod, err := clients.KubeClient.CoreV1().Pods(operatorNamespace).Get(ctx, podName, metav1.GetOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to get pod: %w", err)
+			}
+			if pod.Status.Phase != corev1.PodRunning {
+				return fmt.Errorf("pod %q not ready, phase: %s", podName, pod.Status.Phase)
+			}
+			return nil
+		}, operatorReadyTime, operatorPoll).Should(Succeed(), "curl-metrics-test pod did not become ready")
+
+		By("Visit metrics endpoint with TLS")
+		Eventually(func() error {
+			metricsOutput, _, err := Lexecute(ctx, clients.RestConfig, clients.KubeClient, operatorNamespace, podName, containerName,
+				[]string{
+					//"/bin/sh", "-c",
+					fmt.Sprintf(
+						"curl -v -s --cacert %s/ca.crt -H \"Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)\" https://%s.%s.svc:8443/metrics",
+						certMountPath,
+						metricsServiceName,
+						operatorNamespace,
+					),
+				})
+			if err != nil {
+				return fmt.Errorf("exec into pod failed: %w", err)
+			}
+
+			if !strings.Contains(string(metricsOutput), "controller_runtime_reconcile_total") {
+				return fmt.Errorf("expected metric not found in output")
+			}
+			return nil
+		}, operatorReadyTime, operatorPoll).Should(Succeed(), "expected HTTP 200 OK from metrics endpoint")
+	})
 })
+
+func Lexecute(ctx context.Context, restConfig *rest.Config, kubeClient kubernetes.Interface, namespace, podName, containerName string, command []string) ([]byte, []byte, error) {
+	var out, outErr bytes.Buffer
+	req := kubeClient.CoreV1().RESTClient().Post().
+		Resource("pods").
+		Name(podName).
+		Namespace(namespace).
+		SubResource("exec").
+		VersionedParams(&corev1.PodExecOptions{
+			Command: command,
+			Stdin:   false,
+			Stdout:  true,
+			Stderr:  true,
+			TTY:     false,
+		}, scheme.ParameterCodec)
+
+	executor, err := remotecommand.NewSPDYExecutor(restConfig, "POST", req.URL())
+	if err != nil {
+		return nil, nil, err
+	}
+	if err = executor.StreamWithContext(ctx, remotecommand.StreamOptions{Stdout: &out, Stderr: &outErr, Tty: false}); err != nil {
+		return nil, nil, err
+	}
+	return out.Bytes(), outErr.Bytes(), nil
+}
