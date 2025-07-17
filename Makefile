@@ -98,3 +98,7 @@ generate-bundle:
 	operator-sdk generate bundle --input-dir deploy --version 1.0.0 --channels=stable --default-channel=stable --package leader-worker-set --output-dir=.
 .PHONY: generate-bundle
 
+.PHONY: undeploy-ocp
+undeploy-ocp:
+	hack/undeploy-ocp.sh
+

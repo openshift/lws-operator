@@ -107,6 +107,8 @@ Set OPERATOR_IMAGE to point to your operator image
 
 Set RELATED_IMAGE_OPERAND_IMAGE to point to your lws image you want to test
 
+[Optional] Set ARTIFACT_DIR to /path/to/dir for junit_report.xml
+
 Run operator e2e test
 ```sh
 make test-e2e
