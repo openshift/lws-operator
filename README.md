@@ -5,6 +5,16 @@ The LeaderWorkerSet Operator provides the ability to deploy a
 
 ## Deploy the Operator
 
+### Prerequisites
+
+cert-manager is installed:
+
+```sh
+VERSION=v1.17.0
+oc apply -f https://github.com/cert-manager/cert-manager/releases/download/$VERSION/cert-manager.yaml
+oc -n cert-manager wait --for condition=ready pod -l app.kubernetes.io/instance=cert-manager --timeout=2m
+```
+
 ### Quick Development
 
 1. Build and push the operator image to a registry:
@@ -106,6 +116,8 @@ Set kubeconfig to point to a OCP cluster
 Set OPERATOR_IMAGE to point to your operator image
 
 Set RELATED_IMAGE_OPERAND_IMAGE to point to your lws image you want to test
+
+[Optional] Set ARTIFACT_DIR to /path/to/dir for junit_report.xml
 
 Run operator e2e test
 ```sh
