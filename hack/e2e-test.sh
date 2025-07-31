@@ -43,6 +43,12 @@ fi
 
 CLONE_PATH=""
 
+GINKGO_JUNIT_OPTS=""
+if [ -n "${ARTIFACT_DIR}" ]; then
+  GINKGO_JUNIT_OPTS="--junit-report=${ARTIFACT_DIR}/junit_report.xml"
+fi
+
+
 function cleanup() {
   if [ -n "$CLONE_PATH" ]; then
     rm -rf "${CLONE_PATH}"
@@ -85,7 +91,7 @@ function deploy_lws_operator {
 
 function run_e2e_operator_tests() {
   echo "Running e2e tests for operator"
-  $GINKGO -v ./test/e2e/...
+  $GINKGO "${GINKGO_JUNIT_OPTS}" -v ./test/e2e/...
 }
 
 function run_e2e_operand_tests() {
@@ -104,7 +110,7 @@ function run_e2e_operand_tests() {
       export PATH=${CLONE_PATH}/go/bin:$PATH
     fi
   popd
-  LWS_NAMESPACE=openshift-lws-operator $GINKGO -v /"${CLONE_PATH}"/test/e2e/...
+  LWS_NAMESPACE=openshift-lws-operator $GINKGO "${GINKGO_JUNIT_OPTS}" -v /"${CLONE_PATH}"/test/e2e/...
 }
 
 cert_manager_deploy
