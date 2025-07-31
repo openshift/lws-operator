@@ -26,7 +26,23 @@ spec:
     singular: leaderworkerset
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - description: Number of ready replicas
+      jsonPath: .status.readyReplicas
+      name: Ready
+      type: integer
+    - description: Number of desired replicas
+      jsonPath: .spec.replicas
+      name: Desired
+      type: integer
+    - description: Number of up-to-date replicas
+      jsonPath: .status.updatedReplicas
+      name: Up-to-date
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
     schema:
       openAPIV3Schema:
         description: LeaderWorkerSet is the Schema for the leaderworkersets API
@@ -8194,6 +8210,16 @@ spec:
                         - containers
                         type: object
                     type: object
+                  resizePolicy:
+                    default: None
+                    description: |-
+                      ResizePolicy defines how to handle group size updates:
+                      - None: indicates the `spec.leaderWorkerTemplate.size` is immutable.
+                      - Recreate: indicates recreating the group Pods to reshape the size.
+                    enum:
+                    - None
+                    - Recreate
+                    type: string
                   restartPolicy:
                     default: RecreateGroupOnPodRestart
                     description: |-
@@ -16442,6 +16468,20 @@ spec:
                           that at least 70% of original number of replicas are available at all times
                           during the update.
                         x-kubernetes-int-or-string: true
+                      partition:
+                        default: 0
+                        description: |-
+                          Partition indicates the ordinal at which the lws should be partitioned for updates.
+                          During a rolling update, all the groups from ordinal Partition to Replicas-1 will be updated.
+                          The groups from 0 to Partition-1 will not be updated.
+                          This is helpful in incremental rollout strategies like canary deployments
+                          or interactive rollout strategies for multiple replicas like xPyD deployments.
+                          Once partition field and maxSurge field both set, the bursted replicas will keep remaining
+                          until the rolling update is completely done and the partition field is reset to 0.
+                          This is as expected to reduce the reconciling complexity.
+                          The default value is 0.
+                        format: int32
+                        type: integer
                     type: object
                   type:
                     default: RollingUpdate
