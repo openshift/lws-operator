@@ -5,7 +5,7 @@ Each OCP version we support will have a dir under fbc/, i.e. fbc/v4.18.  The dir
 - a catalog template file
 - a catalog/kueue-operator dir with the actual fbc fragment
 
-On release of a new Kueue Operator, the template files for each supported OCP veersion will need additional entries for the new images in the appropriate channels.  Then the fragement will need to be regenerated with the following command:
+On release of a new LWS Operator, the template files for each supported OCP version will need additional entries for the new images in the appropriate channels.  Then the fragement will need to be regenerated with the following command:
 
 $ ./generate-fbc.sh
 
