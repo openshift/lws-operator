@@ -1,6 +1,0 @@
-apiVersion: config.lws.x-k8s.io/v1alpha1
-kind: Configuration
-internalCertManagement:
-  enable: false
-leaderElection:
-  leaderElect: true

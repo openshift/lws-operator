@@ -1,129 +1,16 @@
-# LeaderWorkerSet Operator
+### FBC generation
 
-The LeaderWorkerSet Operator provides the ability to deploy a
-[LWS](https://github.com/openshift/kubernetes-sigs-lws) in OpenShift.
+Each OCP version we support will have a dir under fbc/, i.e. fbc/v4.18.  The directories will include:
+- a container file for the fbc image
+- a catalog template file
+- a catalog/kueue-operator dir with the actual fbc fragment
 
-## Deploy the Operator
+On release of a new Kueue Operator, the template files for each supported OCP veersion will need additional entries for the new images in the appropriate channels.  Then the fragement will need to be regenerated with the following command:
 
-### Prerequisites
+$ ./generate-fbc.sh
 
-cert-manager is installed:
+NOTE: Starting with OCP 4.17 you need the --migrate-level=bundle-object-to-csv-metadata flag. For rendering to older versions of OCP, simply omit the flag.
 
-```sh
-VERSION=v1.17.0
-oc apply -f https://github.com/cert-manager/cert-manager/releases/download/$VERSION/cert-manager.yaml
-oc -n cert-manager wait --for condition=ready pod -l app.kubernetes.io/instance=cert-manager --timeout=2m
-```
+Note: You need opm version 1.47.0 or higher
 
-### Quick Development
-
-1. Build and push the operator image to a registry:
-   ```sh
-   export QUAY_USER=${your_quay_user_id}
-   export IMAGE_TAG=${your_image_tag}
-   podman build -t quay.io/${QUAY_USER}/lws-operator:${IMAGE_TAG} .
-   podman login quay.io -u ${QUAY_USER}
-   podman push quay.io/${QUAY_USER}/lws-operator:${IMAGE_TAG}
-   ```
-
-2. Update the image spec under `.spec.template.spec.containers[0].image` field in the `deploy/05_deployment.yaml` Deployment to point to the newly built image
-
-3. Apply the manifests from `deploy` directory:
-   ```sh
-   oc apply -f deploy/
-   ```
-
-### OperatorHub install with custom index image
-
-This process refers to building the operator in a way that it can be installed locally via the OperatorHub with a custom index image
-
-1. Build and push the operator image to a registry:
-   ```sh
-   export QUAY_USER=${your_quay_user_id}
-   export IMAGE_TAG=${your_image_tag}
-   podman build -t quay.io/${QUAY_USER}/lws-operator:${IMAGE_TAG} .
-   podman login quay.io -u ${QUAY_USER}
-   podman push quay.io/${QUAY_USER}/lws-operator:${IMAGE_TAG}
-   ```
-
-2. Update the `.spec.install.spec.deployments[0].spec.template.spec.containers[0].image` field in the LWS CSV under `manifests/lws-operator.clusterserviceversion.yaml` to point to the newly built image.
-
-3. Build and push the metadata image to a registry (e.g. https://quay.io):
-   ```sh
-   podman build -t quay.io/${QUAY_USER}/lws-operator-bundle:${IMAGE_TAG} -f bundle.Dockerfile .
-   podman push quay.io/${QUAY_USER}/lws-operator-bundle:${IMAGE_TAG}
-   ```
-
-4. Build and push image index for operator-registry (pull and build https://github.com/operator-framework/operator-registry/ to get the `opm` binary)
-   ```sh
-   opm index add --bundles quay.io/${QUAY_USER}/lws-operator-bundle:${IMAGE_TAG} --tag quay.io/${QUAY_USER}/lws-operator-index:${IMAGE_TAG}
-   podman push quay.io/${QUAY_USER}/lws-operator-index:${IMAGE_TAG}
-   ```
-
-   Don't forget to increase the number of open files, .e.g. `ulimit -n 100000` in case the current limit is insufficient.
-
-5. Create and apply catalogsource manifest (notice to change <<QUAY_USER>> and <<IMAGE_TAG>> to your own values)::
-   ```yaml
-   apiVersion: operators.coreos.com/v1alpha1
-   kind: CatalogSource
-   metadata:
-     name: lws-operator
-     namespace: openshift-marketplace
-   spec:
-     sourceType: grpc
-     image: quay.io/<<QUAY_USER>>/lws-operator-index:<<IMAGE_TAG>>
-   ```
-
-6. Create `openshift-lws-operator` namespace:
-   ```
-   $ oc create ns openshift-lws-operator
-   ```
-
-7. Open the console Operators -> OperatorHub, search for  `Leader Worker Set` and install the operator
-
-8. Create CR for the LeaderWorkerSet Operator in the console:
-```yaml
-apiVersion: operator.openshift.io/v1
-kind: LeaderWorkerSetOperator
-metadata:
-  name: cluster
-  namespace: openshift-lws-operator
-spec:
-  managementState: Managed
-  logLevel: Normal
-  operatorLogLevel: Normal
-```
-
-## Sample CR
-
-A sample CR definition looks like below (the operator expects `cluster` CR under `openshift-lws-operator` namespace):
-
-```yaml
-apiVersion: operator.openshift.io/v1
-kind: LeaderWorkerSetOperator
-metadata:
-  name: cluster
-  namespace: openshift-lws-operator
-spec:
-  managementState: Managed
-  logLevel: Normal
-  operatorLogLevel: Normal
-```
-
-## E2E Test
-Set kubeconfig to point to a OCP cluster
-
-Set OPERATOR_IMAGE to point to your operator image
-
-Set RELATED_IMAGE_OPERAND_IMAGE to point to your lws image you want to test
-
-[Optional] Set ARTIFACT_DIR to /path/to/dir for junit_report.xml
-
-Run operator e2e test
-```sh
-make test-e2e
-```
-Run operand e2e test
-```sh
-make test-e2e-operand
-```
+You can read more at [Konflux example repo](https://github.com/konflux-ci/olm-operator-konflux-sample/blob/main/docs/konflux-onboarding.md#building-a-file-based-catalog)
