@@ -1,0 +1,16 @@
+---
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageDigestMirrorSet
+metadata:
+  name: lws-operator-mirror-set
+spec:
+  imageDigestMirrors:
+    - mirrors:
+        - quay.io/redhat-user-workloads/jobset-lws-pipeline-tenant/lws-operator-1-0/lws-operator-bundle-1-0
+      source: registry.redhat.io/leader-worker-set/lws-operator-bundle
+    - mirrors:
+        - quay.io/redhat-user-workloads/jobset-lws-pipeline-tenant/lws-operator-1-0/lws-operator-1-0
+      source: registry.redhat.io/leader-worker-set/lws-rhel9-operator
+    - mirrors:
+        - quay.io/redhat-user-workloads/jobset-lws-pipeline-tenant/lws-1-0/lws-1-0
+      source: registry.redhat.io/leader-worker-set/lws-rhel9
