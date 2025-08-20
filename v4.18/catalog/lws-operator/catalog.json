@@ -70,8 +70,8 @@
                         }
                     ]
                 },
-                "description": "Red Hat build of Leader Worker Set is based on the [LWS](https://lws.sigs.k8s.io/docs/) open source project.\nLeader Worker Set: An API for deploying a group of pods as a unit of replication. \nIt aims to address common deployment patterns of AI/ML inference workloads, \nespecially multi-host inference workloads where the LLM will be sharded and run across multiple devices on multiple nodes.\n",
-                "displayName": "Red Hat build of Leader Worker Set",
+                "description": "Leader Worker Set Operator is based on the [LWS](https://lws.sigs.k8s.io/docs/) open source project.\nLeader Worker Set: An API for deploying a group of pods as a unit of replication. \nIt aims to address common deployment patterns of AI/ML inference workloads, \nespecially multi-host inference workloads where the LLM will be sharded and run across multiple devices on multiple nodes.\n",
+                "displayName": "Leader Worker Set Operator",
                 "installModes": [
                     {
                         "type": "OwnNamespace",
