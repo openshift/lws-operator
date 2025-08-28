@@ -3,7 +3,7 @@
 Each OCP version we support will have a dir under fbc/, i.e. fbc/v4.18.  The directories will include:
 - a container file for the fbc image
 - a catalog template file
-- a catalog/kueue-operator dir with the actual fbc fragment
+- a catalog/lws-operator dir with the actual fbc fragment
 
 On release of a new LWS Operator, the template files for each supported OCP version will need additional entries for the new images in the appropriate channels.  Then the fragement will need to be regenerated with the following command:
 

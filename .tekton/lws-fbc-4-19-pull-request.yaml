@@ -9,7 +9,7 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "true"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
-      == "fbc" && ( "v4.19/***".pathChanged() || ".tekton/***".pathChanged()
+      == "fbc" && ( "v4.19/***".pathChanged() || ".tekton/lws-fbc-4-19-pull-request.yaml".pathChanged() || ".tekton/lws-fbc-4-19-push.yaml".pathChanged()
       )
   creationTimestamp: null
   labels:
@@ -30,7 +30,10 @@ spec:
     value: 5d
   - name: build-platforms
     value:
-    - linux/x86_64
+      - linux/x86_64
+      - linux/arm64
+      - linux/ppc64le
+      - linux/s390x
   - name: dockerfile
     value: Containerfile.catalog
   - name: path-context
