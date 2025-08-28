@@ -8,7 +8,7 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "fbc" && ( "v4.19/***".pathChanged() || ".tekton/***".pathChanged()
+      == "fbc" && ( "v4.19/***".pathChanged() || ".tekton/lws-fbc-4-19-pull-request.yaml".pathChanged() || ".tekton/lws-fbc-4-19-push.yaml".pathChanged()
       )
   creationTimestamp: null
   labels:
@@ -27,7 +27,10 @@ spec:
     value: quay.io/redhat-user-workloads/jobset-lws-pipeline-tenant/lws-fbc-4-19/lws-fbc-4-19:{{revision}}
   - name: build-platforms
     value:
-    - linux/x86_64
+      - linux/x86_64
+      - linux/arm64
+      - linux/ppc64le
+      - linux/s390x
   - name: dockerfile
     value: Containerfile.catalog
   - name: path-context
