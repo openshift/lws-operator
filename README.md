@@ -13,6 +13,7 @@ cert-manager is installed:
 VERSION=v1.17.0
 oc apply -f https://github.com/cert-manager/cert-manager/releases/download/$VERSION/cert-manager.yaml
 oc -n cert-manager wait --for condition=ready pod -l app.kubernetes.io/instance=cert-manager --timeout=2m
+
 ```
 
 ### Quick Development
