@@ -102,6 +102,7 @@ func NewTargetConfigReconciler(
 		ToController("TargetConfigController", eventRecorder)
 }
 
+// sync
 func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncContext) error {
 	found, err := isResourceRegistered(c.discoveryClient, schema.GroupVersionKind{
 		Group:   "cert-manager.io",
