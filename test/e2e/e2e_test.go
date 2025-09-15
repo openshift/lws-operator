@@ -34,11 +34,13 @@ import (
 
 	v1 "github.com/openshift/api/operator/v1"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
+	"github.com/openshift/lws-operator/test/e2e/testutils"
 )
 
 const (
 	operatorNamespace = "openshift-lws-operator"
 	operandLabel      = "control-plane=controller-manager"
+	OperandName       = "lws-controller-manager"
 )
 
 var _ = Describe("LWS Operator", Ordered, func() {
@@ -123,5 +125,45 @@ var _ = Describe("LWS Operator", Ordered, func() {
 			return true, nil
 		})
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should allow manual scaling when managementState is Unmanaged", func() {
+		ctx := context.TODO()
+		By("Fetching initial operator state")
+		lwsOperator, originalState, err := testutils.GetOperatorState(ctx, clients)
+		Expect(err).ShouldNot(HaveOccurred())
+		originalPodCount := testutils.GetPodCount(ctx, clients, operatorNamespace, operandLabel)
+
+		defer func() {
+			testutils.SetManagementState(ctx, clients, lwsOperator, originalState)
+			testutils.VerifyPodCount(ctx, clients, operatorNamespace, operandLabel, originalPodCount)
+		}()
+		By("Setting managementState to Unmanaged")
+		testutils.SetManagementState(ctx, clients, lwsOperator, v1.Unmanaged)
+
+		By("Scaling up to 3 replicas")
+		testutils.ScaleDeployment(ctx, clients, OperandName, 3)
+		testutils.VerifyPodCount(ctx, clients, operatorNamespace, operandLabel, 3)
+	})
+
+	It("when managementState is Removed test", func() {
+		//note: Now we keep lws-controller-manager according to actual senarios"
+		ctx := context.TODO()
+		By("Fetching initial operator state")
+		lwsOperator, originalState, err := testutils.GetOperatorState(ctx, clients)
+		Expect(err).ShouldNot(HaveOccurred())
+		originalPodCount := testutils.GetPodCount(ctx, clients, operatorNamespace, operandLabel)
+
+		defer func() {
+			newctx := context.TODO()
+			testutils.SetManagementState(newctx, clients, lwsOperator, originalState)
+			testutils.VerifyPodCount(newctx, clients, operatorNamespace, operandLabel, originalPodCount)
+		}()
+		By("Setting managementState to Removed")
+		testutils.SetManagementState(ctx, clients, lwsOperator, v1.Removed)
+
+		By("Scaling up to 3 replicas")
+		testutils.ScaleDeployment(ctx, clients, OperandName, 3)
+		testutils.VerifyPodCount(ctx, clients, operatorNamespace, operandLabel, 3)
 	})
 })
