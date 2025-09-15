@@ -3,6 +3,12 @@
 The LeaderWorkerSet Operator provides the ability to deploy a
 [LWS](https://github.com/openshift/kubernetes-sigs-lws) in OpenShift.
 
+## Releases
+
+| lws version | ocp version | k8s version | golang |
+|-------------|-------------|-------------|--------|
+| 1.0.0       | 4.18-4.20   | 1.33        | 1.24   |
+
 ## Deploy the Operator
 
 ### Prerequisites
