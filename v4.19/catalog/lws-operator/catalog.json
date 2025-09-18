@@ -17,7 +17,7 @@
     "schema": "olm.bundle",
     "name": "leader-worker-set.v1.0.0",
     "package": "leader-worker-set",
-    "image": "registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:fdb10641a4909bf827a5b41db7b8aa490e1ba311c07015e265cefd8dc2b39d77",
+    "image": "registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:f641cf3b2d6659e26eb0ae49c67a3416152a2fbc2f26f490889a2bd169b9ea06",
     "properties": [
         {
             "type": "olm.gvk",
@@ -130,16 +130,16 @@
     ],
     "relatedImages": [
         {
+            "name": "",
+            "image": "registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:f641cf3b2d6659e26eb0ae49c67a3416152a2fbc2f26f490889a2bd169b9ea06"
+        },
+        {
             "name": "lws-operator",
-            "image": "registry.redhat.io/leader-worker-set/lws-rhel9-operator@sha256:ea1e8580694cf48483346bd145d85538a05c25acb6b6698baf10061b50ecb08a"
+            "image": "registry.redhat.io/leader-worker-set/lws-rhel9-operator@sha256:c202bfa15626262ff22682b64ac57539d28dd35f5960c490f5afea75cef34309"
         },
         {
             "name": "lws",
             "image": "registry.redhat.io/leader-worker-set/lws-rhel9@sha256:affb303b1173c273231bb50fef07310b0e220d2f08bfc0aa5912d0825e3e0d4f"
-        },
-        {
-            "name": "",
-            "image": "registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:fdb10641a4909bf827a5b41db7b8aa490e1ba311c07015e265cefd8dc2b39d77"
         }
     ]
 }
