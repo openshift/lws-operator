@@ -35,9 +35,10 @@ COPY --from=builder /go/src/github.com/openshift/lws-operator/metadata /metadata
 COPY --from=builder /go/src/github.com/openshift/lws-operator/licenses /licenses
 
 LABEL com.redhat.component="Leader Worker Set"
+LABEL cpe="cpe:/a:redhat:leader_worker_set:1.0::el9"
 LABEL description="Leader Worker Set Operator is based on the [LWS](https://lws.sigs.k8s.io/docs/) open source project. LeaderWorkerSet: An API for deploying a group of pods as a unit of replication. It aims to address common deployment patterns of AI/ML inference workloads, especially multi-host inference workloads where the LLM will be sharded and run across multiple devices on multiple nodes."
 LABEL distribution-scope="public"
-LABEL name="lws-operator-bundle"
+LABEL name="leader-worker-set/lws-operator-bundle"
 LABEL release="1.0.0"
 LABEL version="1.0.0"
 LABEL url="https://github.com/openshift/lws-operator"

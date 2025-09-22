@@ -10,7 +10,8 @@ COPY --from=builder /go/src/github.com/openshift/lws-operator/LICENSE /licenses/
 
 LABEL com.redhat.component="Leader Worker Set"
 LABEL description="LeaderWorkerSet Operator manages the Leader Worker Set."
-LABEL name="lws-operator"
+LABEL name="leader-worker-set/lws-rhel9-operator"
+LABEL cpe="cpe:/a:redhat:leader_worker_set:1.0::el9"
 LABEL summary="LeaderWorkerSet Operator manages the Leader Worker Set."
 LABEL io.k8s.display-name="LeaderWorkerSet Operator" \
       io.k8s.description="This is an operator to manage Leader Worker Set" \
