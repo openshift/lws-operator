@@ -43,7 +43,6 @@ LABEL release="1.0.0"
 LABEL version="1.0.0"
 LABEL url="https://github.com/openshift/lws-operator"
 LABEL vendor="Red Hat, Inc."
-LABEL name="lws-operator-bundle"
 LABEL summary="LeaderWorkerSet: An API for deploying a group of pods as a unit of replication"
 LABEL io.k8s.display-name="Leader Worker Set" \
       io.k8s.description="This is an operator to manage Leader Worker Set" \
