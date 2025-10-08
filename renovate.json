@@ -36,10 +36,7 @@
     "enabled": true,
     "packageRules": [
       {
-        "matchFileNames": [
-          "Dockerfile*",
-          "*.Dockerfile"
-        ],
+        "matchFileNames": ["bundle.Dockerfile"],
         "automerge": true,
         "addLabels": [
           "jira/valid-reference",
