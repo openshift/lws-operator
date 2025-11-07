@@ -3,7 +3,7 @@ WORKDIR /go/src/github.com/openshift/lws-operator
 COPY . .
 RUN make build --warn-undefined-variables
 
-FROM registry.redhat.io/rhel9-4-els/rhel-minimal:9.4
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 COPY --from=builder /go/src/github.com/openshift/lws-operator/lws-operator /usr/bin/
 RUN mkdir /licenses
 COPY --from=builder /go/src/github.com/openshift/lws-operator/LICENSE /licenses/.
