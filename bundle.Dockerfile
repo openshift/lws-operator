@@ -2,7 +2,7 @@ FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_1.24 as bui
 WORKDIR /go/src/github.com/openshift/lws-operator
 COPY . .
 
-ARG OPERAND_IMAGE=registry.redhat.io/leader-worker-set/lws-rhel9@sha256:b832156ec725e6d09a1f5ad1c1911973ddf1ad25bfc5bb86228024de7b402798
+ARG OPERAND_IMAGE=registry.redhat.io/leader-worker-set/lws-rhel9@sha256:d30d2e2ed022212395b7f83994b5447d584bc11f8662944cc83cd6f14777009a
 ARG REPLACED_OPERAND_IMG=\${OPERAND_IMAGE}
 
 # Replace the operand image in deploy/05_deployment.yaml with the one specified by the OPERAND_IMAGE build argument.
