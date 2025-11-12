@@ -22,7 +22,7 @@ metadata:
     operators.operatorframework.io/builder: operator-sdk-v1.34.2
     repository: https://github.com/openshift/lws-operator
     support: Red Hat, Inc.
-    categories: Openshift Optional
+    categories: OpenShift Optional
     operators.openshift.io/valid-subscription: '["OpenShift Container Platform", "OpenShift Platform Plus"]'
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
