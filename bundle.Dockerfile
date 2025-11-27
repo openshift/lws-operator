@@ -41,6 +41,7 @@ LABEL distribution-scope="public"
 LABEL name="leader-worker-set/lws-operator-bundle"
 LABEL release="1.0.0"
 LABEL version="1.0.0"
+LABEL distribution-scope=public
 LABEL url="https://github.com/openshift/lws-operator"
 LABEL vendor="Red Hat, Inc."
 LABEL summary="LeaderWorkerSet: An API for deploying a group of pods as a unit of replication"
