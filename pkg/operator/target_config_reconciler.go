@@ -272,6 +272,7 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 
 	_, _, err = v1helpers.UpdateStatus(ctx, c.leaderWorkerSetOperatorClient, func(status *operatorv1.OperatorStatus) error {
 		resourcemerge.SetDeploymentGeneration(&status.Generations, deployment)
+		status.ReadyReplicas = deployment.Status.ReadyReplicas
 		return nil
 	}, v1helpers.UpdateConditionFn(operatorv1.OperatorCondition{
 		Type:   operatorv1.OperatorStatusTypeAvailable,
