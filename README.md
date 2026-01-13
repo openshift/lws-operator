@@ -7,7 +7,7 @@ The LeaderWorkerSet Operator provides the ability to deploy a
 
 | lws version | ocp version | k8s version | golang |
 |-------------|-------------|-------------|--------|
-| 1.0.0       | 4.18-4.20   | 1.33        | 1.24   |
+| 1.0.0       | 4.18-4.21   | 1.33        | 1.24   |
 
 ## Deploy the Operator
 
