@@ -1,0 +1,7 @@
+Schema: olm.semver
+GenerateMajorChannels: false
+GenerateMinorChannels: true
+DefaultChannelTypePreference: "minor"
+Stable:
+  Bundles:
+    - Image: registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:f641cf3b2d6659e26eb0ae49c67a3416152a2fbc2f26f490889a2bd169b9ea06
