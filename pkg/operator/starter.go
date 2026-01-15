@@ -22,6 +22,7 @@ import (
 
 const (
 	operatorNamespace = "openshift-lws-operator"
+	operandName       = "lws-controller-manager"
 )
 
 func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error {
