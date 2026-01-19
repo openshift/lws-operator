@@ -24,6 +24,8 @@ import (
 
 // LeaderWorkerSetOperatorSpecApplyConfiguration represents a declarative configuration of the LeaderWorkerSetOperatorSpec type for use
 // with apply.
+//
+// LeaderWorkerSetOperatorSpec defines the desired state of LeaderWorkerSetOperator
 type LeaderWorkerSetOperatorSpecApplyConfiguration struct {
 	operatorv1.OperatorSpecApplyConfiguration `json:",inline"`
 }
