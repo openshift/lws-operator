@@ -201,6 +201,10 @@ spec:
         required:
         - spec
         type: object
+        x-kubernetes-validations:
+        - message: LeaderWorkerSetOperator is a singleton, .metadata.name must be
+            'cluster'
+          rule: self.metadata.name == 'cluster'
     served: true
     storage: true
     subresources:
