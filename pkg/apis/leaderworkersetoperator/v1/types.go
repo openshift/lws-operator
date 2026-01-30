@@ -14,6 +14,7 @@ import (
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster
+// +kubebuilder:validation:XValidation:rule="self.metadata.name == 'cluster'",message="LeaderWorkerSetOperator is a singleton, .metadata.name must be 'cluster'"
 type LeaderWorkerSetOperator struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
