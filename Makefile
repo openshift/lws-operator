@@ -56,7 +56,7 @@ lint: golangci-lint
 	$(GOLANGCI_LINT) run --verbose --print-resources-usage
 .PHONY: lint
 
-generate: generate-clients regen-crd generate-controller-manifests
+generate: generate-clients regen-crd generate-controller-manifests update-cluster-service-version
 .PHONY: generate
 
 generate-clients:
@@ -66,6 +66,10 @@ generate-clients:
 generate-controller-manifests:
 	hack/update-lws-controller-manifests.sh
 .PHONY: generate-controller-manifests
+
+update-cluster-service-version:
+	hack/update-cluster-service-version.sh
+.PHONY: update-cluster-service-version
 
 verify-codegen:
 	GO=GO111MODULE=on GOFLAGS=-mod=readonly hack/verify-codegen.sh
