@@ -37,6 +37,10 @@ spec:
             - "operator"
           imagePullPolicy: Always
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "openshift-lws-operator"
             - name: RELATED_IMAGE_OPERAND_IMAGE
