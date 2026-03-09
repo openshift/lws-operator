@@ -1,6 +1,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  labels:
+    app.kubernetes.io/instance: lws
+    app.kubernetes.io/name: lws
   name: lws-prometheus-k8s
   namespace: openshift-lws-operator
 roleRef:
