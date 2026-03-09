@@ -3,9 +3,9 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/created-by: lws
-    app.kubernetes.io/instance: metrics-reader
+    app.kubernetes.io/instance: lws
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/name: lws
     app.kubernetes.io/part-of: lws
   name: lws-metrics-reader
 rules:

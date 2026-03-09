@@ -6,9 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/component: webhook
     app.kubernetes.io/created-by: lws
-    app.kubernetes.io/instance: validating-webhook-configuration
+    app.kubernetes.io/instance: lws
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: validatingwebhookconfiguration
+    app.kubernetes.io/name: lws
     app.kubernetes.io/part-of: lws
   name: lws-validating-webhook-configuration
 webhooks:
