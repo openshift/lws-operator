@@ -1,7 +1,5 @@
 reviewers:
-  - ardaguclu
-  - atiratree
+  - control-plane-approvers
 approvers:
-  - ardaguclu
-  - atiratree
+  - control-plane-approvers
 component: "lws-operator"
