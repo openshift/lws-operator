@@ -33,6 +33,7 @@ import (
 
 	v1 "github.com/openshift/api/operator/v1"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
+	lwsoperatorv1 "github.com/openshift/lws-operator/pkg/apis/leaderworkersetoperator/v1"
 	"github.com/openshift/lws-operator/test/e2e/testutils"
 )
 
@@ -81,6 +82,36 @@ var _ = Describe("LWS Operator", Ordered, func() {
 			}
 			return nil
 		}, 5*time.Minute, 5*time.Second).Should(Succeed(), "available condition is not found")
+	})
+
+	It("applies nodePlacement to lws-controller-manager deployment", func() {
+		ctx := context.TODO()
+		lwsOperator, _, err := testutils.GetOperatorState(ctx, clients)
+		Expect(err).NotTo(HaveOccurred())
+
+		nodeSelector := map[string]string{
+			"e2e.lws.openshift.io/node-placement": "test",
+		}
+		tolerations := []corev1.Toleration{
+			{
+				Key:      "e2e.lws.openshift.io/node-placement",
+				Operator: corev1.TolerationOpEqual,
+				Value:    "test",
+				Effect:   corev1.TaintEffectNoSchedule,
+			},
+		}
+		nodePlacement := &lwsoperatorv1.NodePlacement{
+			NodeSelector: nodeSelector,
+			Tolerations:  tolerations,
+		}
+
+		defer func() {
+			testutils.SetNodePlacement(ctx, clients, lwsOperator, nil)
+			testutils.VerifyDeploymentNodePlacement(ctx, clients, OperandName, nil, nil)
+		}()
+
+		testutils.SetNodePlacement(ctx, clients, lwsOperator, nodePlacement)
+		testutils.VerifyDeploymentNodePlacement(ctx, clients, OperandName, nodeSelector, tolerations)
 	})
 
 	It("Verifying operand pod deleted and recovery", func() {
@@ -139,13 +170,19 @@ var _ = Describe("LWS Operator", Ordered, func() {
 
 		defer func() {
 			testutils.SetManagementState(ctx, clients, lwsOperator, originalState)
+			testutils.WaitForManagementState(ctx, clients, originalState)
+			if originalState == "" || originalState == v1.Managed {
+				testutils.VerifyDeploymentReplicas(ctx, clients, OperandName, int32(originalPodCount))
+			}
 			testutils.VerifyPodCount(ctx, clients, operatorNamespace, operandLabel, originalPodCount)
 		}()
 		By("Setting managementState to Unmanaged")
 		testutils.SetManagementState(ctx, clients, lwsOperator, v1.Unmanaged)
+		testutils.WaitForManagementState(ctx, clients, v1.Unmanaged)
 
 		By("Scaling up to 3 replicas")
 		testutils.ScaleDeployment(ctx, clients, OperandName, 3)
+		testutils.VerifyDeploymentReplicas(ctx, clients, OperandName, 3)
 		testutils.VerifyPodCount(ctx, clients, operatorNamespace, operandLabel, 3)
 	})
 
@@ -160,13 +197,19 @@ var _ = Describe("LWS Operator", Ordered, func() {
 		defer func() {
 			newctx := context.TODO()
 			testutils.SetManagementState(newctx, clients, lwsOperator, originalState)
+			testutils.WaitForManagementState(newctx, clients, originalState)
+			if originalState == "" || originalState == v1.Managed {
+				testutils.VerifyDeploymentReplicas(newctx, clients, OperandName, int32(originalPodCount))
+			}
 			testutils.VerifyPodCount(newctx, clients, operatorNamespace, operandLabel, originalPodCount)
 		}()
 		By("Setting managementState to Removed")
 		testutils.SetManagementState(ctx, clients, lwsOperator, v1.Removed)
+		testutils.WaitForManagementState(ctx, clients, v1.Removed)
 
 		By("Scaling up to 3 replicas")
 		testutils.ScaleDeployment(ctx, clients, OperandName, 3)
+		testutils.VerifyDeploymentReplicas(ctx, clients, OperandName, 3)
 		testutils.VerifyPodCount(ctx, clients, operatorNamespace, operandLabel, 3)
 	})
 })

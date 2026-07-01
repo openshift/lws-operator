@@ -60,6 +60,72 @@ spec:
                   should manage the component
                 pattern: ^(Managed|Unmanaged|Force|Removed)$
                 type: string
+              nodePlacement:
+                description: |-
+                  nodePlacement provides explicit control over the scheduling of lws-controller-manager pods.
+
+                  If unset, the operator does not inject nodeSelector or tolerations beyond the upstream operand manifest.
+
+                  When set, each specified field within nodePlacement replaces the corresponding field on the
+                  operand deployment pod template. Omitted fields within nodePlacement leave the upstream
+                  operand manifest values unchanged.
+                properties:
+                  nodeSelector:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      nodeSelector is the node selector applied to lws-controller-manager pods.
+
+                      If set, the specified selector replaces the nodeSelector on the operand deployment pod template.
+
+                      If unset, the operand deployment keeps any nodeSelector from the upstream manifest.
+                    type: object
+                  tolerations:
+                    description: |-
+                      tolerations is a list of tolerations applied to lws-controller-manager pods.
+
+                      If set, the specified tolerations replace tolerations on the operand deployment pod template.
+
+                      If unset, the operand deployment keeps any tolerations from the upstream manifest.
+                    items:
+                      description: |-
+                        The pod this Toleration is attached to tolerates any taint that matches
+                        the triple <key,value,effect> using the matching operator <operator>.
+                      properties:
+                        effect:
+                          description: |-
+                            Effect indicates the taint effect to match. Empty means match all taint effects.
+                            When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
+                          type: string
+                        key:
+                          description: |-
+                            Key is the taint key that the toleration applies to. Empty means match all taint keys.
+                            If the key is empty, operator must be Exists; this combination means to match all values and all keys.
+                          type: string
+                        operator:
+                          description: |-
+                            Operator represents a key's relationship to the value.
+                            Valid operators are Exists, Equal, Lt, and Gt. Defaults to Equal.
+                            Exists is equivalent to wildcard for value, so that a pod can
+                            tolerate all taints of a particular category.
+                            Lt and Gt perform numeric comparisons (requires feature gate TaintTolerationComparisonOperators).
+                          type: string
+                        tolerationSeconds:
+                          description: |-
+                            TolerationSeconds represents the period of time the toleration (which must be
+                            of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default,
+                            it is not set, which means tolerate the taint forever (do not evict). Zero and
+                            negative values will be treated as 0 (evict immediately) by the system.
+                          format: int64
+                          type: integer
+                        value:
+                          description: |-
+                            Value is the taint value the toleration matches to.
+                            If the operator is Exists, the value should be empty, otherwise just a regular string.
+                          type: string
+                      type: object
+                    type: array
+                type: object
               observedConfig:
                 description: |-
                   observedConfig holds a sparse config that controller has observed from the cluster state.  It exists in spec because

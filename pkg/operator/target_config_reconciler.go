@@ -696,6 +696,8 @@ func (c *TargetConfigReconciler) manageDeployments(ctx context.Context,
 	// replace the default arg values from upstream
 	required.Spec.Template.Spec.Containers[0].Args = newArgs
 
+	applyNodePlacement(&required.Spec.Template.Spec, leaderWorkerSetOperator.Spec.NodePlacement)
+
 	return resourceapply.ApplyDeployment(
 		ctx,
 		c.kubeClient.AppsV1(),

@@ -36,6 +36,8 @@ func ForKind(kind schema.GroupVersionKind) interface{} {
 		return &leaderworkersetoperatorv1.LeaderWorkerSetOperatorSpecApplyConfiguration{}
 	case v1.SchemeGroupVersion.WithKind("LeaderWorkerSetOperatorStatus"):
 		return &leaderworkersetoperatorv1.LeaderWorkerSetOperatorStatusApplyConfiguration{}
+	case v1.SchemeGroupVersion.WithKind("NodePlacement"):
+		return &leaderworkersetoperatorv1.NodePlacementApplyConfiguration{}
 
 	}
 	return nil

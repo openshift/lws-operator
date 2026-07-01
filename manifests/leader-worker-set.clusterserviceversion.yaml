@@ -15,6 +15,30 @@ metadata:
             "managementState": "Managed",
             "operatorLogLevel": "Normal"
           }
+        },
+        {
+          "apiVersion": "operator.openshift.io/v1",
+          "kind": "LeaderWorkerSetOperator",
+          "metadata": {
+            "name": "cluster"
+          },
+          "spec": {
+            "logLevel": "Normal",
+            "managementState": "Managed",
+            "operatorLogLevel": "Normal",
+            "nodePlacement": {
+              "nodeSelector": {
+                "node-role.kubernetes.io/infra": ""
+              },
+              "tolerations": [
+                {
+                  "key": "node-role.kubernetes.io/infra",
+                  "operator": "Exists",
+                  "effect": "NoSchedule"
+                }
+              ]
+            }
+          }
         }
       ]
     capabilities: Basic Install
