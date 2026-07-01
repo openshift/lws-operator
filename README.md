@@ -116,6 +116,38 @@ spec:
   operatorLogLevel: Normal
 ```
 
+### Infrastructure node placement
+
+To schedule `lws-controller-manager` pods on infrastructure nodes, set `spec.nodePlacement` on the `LeaderWorkerSetOperator` CR. This applies only to the operand deployment, not the OLM operator pod (configure that via Subscription `spec.config`).
+
+Verify your cluster topology before applying this example. The sample below targets `node-role.kubernetes.io/infra`, which requires nodes with that role. On Single Node OpenShift (SNO), compact three-node, or other topologies without dedicated infrastructure nodes, that label may be absent and the operand can remain unschedulable until `nodePlacement` is removed or updated with labels and tolerations that match your cluster. See the [OpenShift documentation on node roles](https://docs.openshift.com/container-platform/latest/nodes/nodes-nodes-managing.html) for details.
+
+Inspect the field with:
+
+```sh
+oc explain leaderworkersetoperators.operator.openshift.io.spec.nodePlacement
+```
+
+Sample CR with infra node placement:
+
+```yaml
+apiVersion: operator.openshift.io/v1
+kind: LeaderWorkerSetOperator
+metadata:
+  name: cluster
+spec:
+  managementState: Managed
+  logLevel: Normal
+  operatorLogLevel: Normal
+  nodePlacement:
+    nodeSelector:
+      node-role.kubernetes.io/infra: ""
+    tolerations:
+      - key: node-role.kubernetes.io/infra
+        operator: Exists
+        effect: NoSchedule
+```
+
 ## E2E Test
 Set kubeconfig to point to a OCP cluster
 
