@@ -8,7 +8,7 @@ SOURCE_GIT_COMMIT ?=$(shell git rev-parse --short "HEAD^{commit}" 2>/dev/null)
 GINKGO_VERSION ?= $(shell go list -m -f '{{.Version}}' github.com/onsi/ginkgo/v2)
 
 GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
-GOLANGCI_LINT_VERSION ?= v2.8.0
+GOLANGCI_LINT_VERSION ?= v2.11.4
 
 # OS_GIT_VERSION is populated by ART
 # If building out of the ART pipeline, fallback to SOURCE_GIT_TAG
@@ -38,7 +38,7 @@ IMAGE_REGISTRY := registry.ci.openshift.org
 # $4 - context directory for image build
 $(call build-image,ocp-lws-operator,$(IMAGE_REGISTRY)/ocp/4.20:lws-operator, ./Dockerfile,.)
 
-$(call verify-golang-versions,Dockerfile)
+$(call verify-golang-versions,Dockerfile.ci)
 
 regen-crd:
 	go build -o _output/tools/bin/controller-gen ./vendor/sigs.k8s.io/controller-tools/cmd/controller-gen
