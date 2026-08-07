@@ -248,6 +248,16 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		return err
 	}
 
+	_, _, err = c.manageDisaggregatedSetCRD(ctx, ownerReference)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = c.manageDisaggregatedSetRoleScalerCRD(ctx, ownerReference)
+	if err != nil {
+		return err
+	}
+
 	_, _, err = c.manageServiceAccount(ctx, ownerReference)
 	if err != nil {
 		return err
@@ -553,6 +563,72 @@ func (c *TargetConfigReconciler) manageServiceAccount(ctx context.Context, owner
 
 func (c *TargetConfigReconciler) manageCustomResourceDefinition(ctx context.Context, ownerReference metav1.OwnerReference) (*apiextensionv1.CustomResourceDefinition, bool, error) {
 	required := resourceread.ReadCustomResourceDefinitionV1OrDie(bindata.MustAsset("assets/lws-controller-generated/apiextensions.k8s.io_v1_customresourcedefinition_leaderworkersets.leaderworkerset.x-k8s.io.yaml"))
+	required.OwnerReferences = []metav1.OwnerReference{
+		ownerReference,
+	}
+
+	if required.Spec.Conversion != nil &&
+		required.Spec.Conversion.Webhook != nil &&
+		required.Spec.Conversion.Webhook.ClientConfig != nil &&
+		required.Spec.Conversion.Webhook.ClientConfig.Service != nil {
+		required.Spec.Conversion.Webhook.ClientConfig.Service.Namespace = c.namespace
+	}
+
+	err := injectCertManagerCA(required, c.namespace)
+	if err != nil {
+		return nil, false, err
+	}
+
+	currentCRD, err := c.apiextensionClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, required.Name, metav1.GetOptions{})
+	switch {
+	case apierrors.IsNotFound(err):
+		// no action needed
+	case err != nil && !apierrors.IsNotFound(err):
+		return nil, false, err
+	case err == nil:
+		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil {
+			required.Spec.Conversion.Webhook.ClientConfig.CABundle = currentCRD.Spec.Conversion.Webhook.ClientConfig.CABundle
+		}
+	}
+
+	return resourceapply.ApplyCustomResourceDefinitionV1(ctx, c.apiextensionClient.ApiextensionsV1(), c.eventRecorder, required)
+}
+
+func (c *TargetConfigReconciler) manageDisaggregatedSetCRD(ctx context.Context, ownerReference metav1.OwnerReference) (*apiextensionv1.CustomResourceDefinition, bool, error) {
+	required := resourceread.ReadCustomResourceDefinitionV1OrDie(bindata.MustAsset("assets/lws-controller-generated/apiextensions.k8s.io_v1_customresourcedefinition_disaggregatedsets.disaggregatedset.x-k8s.io.yaml"))
+	required.OwnerReferences = []metav1.OwnerReference{
+		ownerReference,
+	}
+
+	if required.Spec.Conversion != nil &&
+		required.Spec.Conversion.Webhook != nil &&
+		required.Spec.Conversion.Webhook.ClientConfig != nil &&
+		required.Spec.Conversion.Webhook.ClientConfig.Service != nil {
+		required.Spec.Conversion.Webhook.ClientConfig.Service.Namespace = c.namespace
+	}
+
+	err := injectCertManagerCA(required, c.namespace)
+	if err != nil {
+		return nil, false, err
+	}
+
+	currentCRD, err := c.apiextensionClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, required.Name, metav1.GetOptions{})
+	switch {
+	case apierrors.IsNotFound(err):
+		// no action needed
+	case err != nil && !apierrors.IsNotFound(err):
+		return nil, false, err
+	case err == nil:
+		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil {
+			required.Spec.Conversion.Webhook.ClientConfig.CABundle = currentCRD.Spec.Conversion.Webhook.ClientConfig.CABundle
+		}
+	}
+
+	return resourceapply.ApplyCustomResourceDefinitionV1(ctx, c.apiextensionClient.ApiextensionsV1(), c.eventRecorder, required)
+}
+
+func (c *TargetConfigReconciler) manageDisaggregatedSetRoleScalerCRD(ctx context.Context, ownerReference metav1.OwnerReference) (*apiextensionv1.CustomResourceDefinition, bool, error) {
+	required := resourceread.ReadCustomResourceDefinitionV1OrDie(bindata.MustAsset("assets/lws-controller-generated/apiextensions.k8s.io_v1_customresourcedefinition_disaggregatedsetrolescalers.disaggregatedset.x-k8s.io.yaml"))
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
