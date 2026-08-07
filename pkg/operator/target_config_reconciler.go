@@ -586,7 +586,8 @@ func (c *TargetConfigReconciler) manageCustomResourceDefinition(ctx context.Cont
 	case err != nil && !apierrors.IsNotFound(err):
 		return nil, false, err
 	case err == nil:
-		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil {
+		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil &&
+			currentCRD.Spec.Conversion != nil && currentCRD.Spec.Conversion.Webhook != nil && currentCRD.Spec.Conversion.Webhook.ClientConfig != nil {
 			required.Spec.Conversion.Webhook.ClientConfig.CABundle = currentCRD.Spec.Conversion.Webhook.ClientConfig.CABundle
 		}
 	}
@@ -619,7 +620,8 @@ func (c *TargetConfigReconciler) manageDisaggregatedSetCRD(ctx context.Context, 
 	case err != nil && !apierrors.IsNotFound(err):
 		return nil, false, err
 	case err == nil:
-		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil {
+		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil &&
+			currentCRD.Spec.Conversion != nil && currentCRD.Spec.Conversion.Webhook != nil && currentCRD.Spec.Conversion.Webhook.ClientConfig != nil {
 			required.Spec.Conversion.Webhook.ClientConfig.CABundle = currentCRD.Spec.Conversion.Webhook.ClientConfig.CABundle
 		}
 	}
@@ -652,7 +654,8 @@ func (c *TargetConfigReconciler) manageDisaggregatedSetRoleScalerCRD(ctx context
 	case err != nil && !apierrors.IsNotFound(err):
 		return nil, false, err
 	case err == nil:
-		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil {
+		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil &&
+			currentCRD.Spec.Conversion != nil && currentCRD.Spec.Conversion.Webhook != nil && currentCRD.Spec.Conversion.Webhook.ClientConfig != nil {
 			required.Spec.Conversion.Webhook.ClientConfig.CABundle = currentCRD.Spec.Conversion.Webhook.ClientConfig.CABundle
 		}
 	}
