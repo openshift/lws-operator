@@ -273,14 +273,22 @@ var _ = Describe("LWS Operator CRD and Webhook Management", Ordered, func() {
 		}
 
 		foundWebhooks := make(map[string]bool)
+		webhookPolicies := make(map[string]admissionregistrationv1.FailurePolicyType)
 		for _, wh := range vwhc.Webhooks {
 			foundWebhooks[wh.Name] = true
-			klog.Infof("Found webhook: %s", wh.Name)
+			if wh.FailurePolicy != nil {
+				webhookPolicies[wh.Name] = *wh.FailurePolicy
+			}
+			klog.Infof("Found webhook: %s with failurePolicy: %v", wh.Name, wh.FailurePolicy)
 		}
 
 		for _, name := range webhookNames {
 			Expect(foundWebhooks).To(HaveKey(name), "Webhook %s should be configured", name)
 		}
+
+		// Verify DisaggregatedSet webhook uses Ignore failurePolicy to allow bootstrap
+		Expect(webhookPolicies).To(HaveKeyWithValue("vdisaggregatedset.kb.io", admissionregistrationv1.Ignore),
+			"DisaggregatedSet webhook should use Ignore failurePolicy")
 
 		By("Checking MutatingWebhookConfiguration")
 		mwhc, err := clients.KubeClient.AdmissionregistrationV1().
@@ -354,7 +362,11 @@ var _ = Describe("LWS Operator CRD and Webhook Management", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		hasDisaggregatedSetPermissions := false
+		hasDisaggregatedSetStatusPermissions := false
+		hasDisaggregatedSetFinalizerPermissions := false
 		hasDisaggregatedSetRoleScalerPermissions := false
+		hasDisaggregatedSetRoleScalerStatusPermissions := false
+		hasDisaggregatedSetRoleScalerFinalizerPermissions := false
 
 		for _, rule := range clusterRole.Rules {
 			for _, apiGroup := range rule.APIGroups {
@@ -368,11 +380,39 @@ var _ = Describe("LWS Operator CRD and Webhook Management", Ordered, func() {
 						klog.Infof("DisaggregatedSet permissions verified")
 					}
 
+					if containsString(rule.Resources, "disaggregatedsets/status") {
+						hasDisaggregatedSetStatusPermissions = true
+						Expect(rule.Verbs).To(ContainElements("get", "patch", "update"),
+							"Should have write permissions for disaggregatedsets/status")
+						klog.Infof("DisaggregatedSet status permissions verified")
+					}
+
+					if containsString(rule.Resources, "disaggregatedsets/finalizers") {
+						hasDisaggregatedSetFinalizerPermissions = true
+						Expect(rule.Verbs).To(ContainElements("update"),
+							"Should have update permission for disaggregatedsets/finalizers")
+						klog.Infof("DisaggregatedSet finalizer permissions verified")
+					}
+
 					if containsString(rule.Resources, "disaggregatedsetrolescalers") {
 						hasDisaggregatedSetRoleScalerPermissions = true
 						Expect(rule.Verbs).To(ContainElements("get", "list", "watch"),
 							"Should have basic read permissions for disaggregatedsetrolescalers")
 						klog.Infof("DisaggregatedSetRoleScaler permissions verified")
+					}
+
+					if containsString(rule.Resources, "disaggregatedsetrolescalers/status") {
+						hasDisaggregatedSetRoleScalerStatusPermissions = true
+						Expect(rule.Verbs).To(ContainElements("get", "patch", "update"),
+							"Should have write permissions for disaggregatedsetrolescalers/status")
+						klog.Infof("DisaggregatedSetRoleScaler status permissions verified")
+					}
+
+					if containsString(rule.Resources, "disaggregatedsetrolescalers/finalizers") {
+						hasDisaggregatedSetRoleScalerFinalizerPermissions = true
+						Expect(rule.Verbs).To(ContainElements("update"),
+							"Should have update permission for disaggregatedsetrolescalers/finalizers")
+						klog.Infof("DisaggregatedSetRoleScaler finalizer permissions verified")
 					}
 				}
 			}
@@ -380,8 +420,16 @@ var _ = Describe("LWS Operator CRD and Webhook Management", Ordered, func() {
 
 		Expect(hasDisaggregatedSetPermissions).To(BeTrue(),
 			"ClusterRole should have permissions for disaggregatedsets")
+		Expect(hasDisaggregatedSetStatusPermissions).To(BeTrue(),
+			"ClusterRole should have permissions for disaggregatedsets/status")
+		Expect(hasDisaggregatedSetFinalizerPermissions).To(BeTrue(),
+			"ClusterRole should have permissions for disaggregatedsets/finalizers")
 		Expect(hasDisaggregatedSetRoleScalerPermissions).To(BeTrue(),
 			"ClusterRole should have permissions for disaggregatedsetrolescalers")
+		Expect(hasDisaggregatedSetRoleScalerStatusPermissions).To(BeTrue(),
+			"ClusterRole should have permissions for disaggregatedsetrolescalers/status")
+		Expect(hasDisaggregatedSetRoleScalerFinalizerPermissions).To(BeTrue(),
+			"ClusterRole should have permissions for disaggregatedsetrolescalers/finalizers")
 	})
 
 	It("should not require cert-manager annotation for DisaggregatedSet CRDs", func() {

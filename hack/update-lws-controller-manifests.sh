@@ -64,6 +64,8 @@ pushd "${LWS_CONTROLLER_DIR}"
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit remove resource "../internalcert"
       # Apply downstream patch to change DisaggregatedSet webhook failurePolicy to Ignore
       cp "${SCRIPT_ROOT}/hack/webhook_failurepolicy_patch.yaml" "${LWS_CONTROLLER_DIR}/config/default/"
+      # Set up cleanup trap to remove the downstream patch file
+      trap 'rm -f "${LWS_CONTROLLER_DIR}/config/default/webhook_failurepolicy_patch.yaml"' EXIT
       "${LWS_CONTROLLER_DIR}/bin/kustomize" edit add patch --path webhook_failurepolicy_patch.yaml --kind ValidatingWebhookConfiguration
     popd
     pushd "${LWS_CONTROLLER_DIR}/config/crd"
