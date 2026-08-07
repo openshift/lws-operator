@@ -574,9 +574,15 @@ func (c *TargetConfigReconciler) manageCustomResourceDefinition(ctx context.Cont
 		required.Spec.Conversion.Webhook.ClientConfig.Service.Namespace = c.namespace
 	}
 
-	err := injectCertManagerCA(required, c.namespace)
-	if err != nil {
-		return nil, false, err
+	// Only inject cert-manager CA if the CRD has the annotation (e.g., LeaderWorkerSet with conversion webhook)
+	// DisaggregatedSet CRDs don't have conversion webhooks and don't need this annotation
+	if annotations := required.GetAnnotations(); annotations != nil {
+		if _, ok := annotations[CertManagerInjectCaAnnotation]; ok {
+			err := injectCertManagerCA(required, c.namespace)
+			if err != nil {
+				return nil, false, err
+			}
+		}
 	}
 
 	currentCRD, err := c.apiextensionClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, required.Name, metav1.GetOptions{})
@@ -608,9 +614,15 @@ func (c *TargetConfigReconciler) manageDisaggregatedSetCRD(ctx context.Context, 
 		required.Spec.Conversion.Webhook.ClientConfig.Service.Namespace = c.namespace
 	}
 
-	err := injectCertManagerCA(required, c.namespace)
-	if err != nil {
-		return nil, false, err
+	// Only inject cert-manager CA if the CRD has the annotation (e.g., LeaderWorkerSet with conversion webhook)
+	// DisaggregatedSet CRDs don't have conversion webhooks and don't need this annotation
+	if annotations := required.GetAnnotations(); annotations != nil {
+		if _, ok := annotations[CertManagerInjectCaAnnotation]; ok {
+			err := injectCertManagerCA(required, c.namespace)
+			if err != nil {
+				return nil, false, err
+			}
+		}
 	}
 
 	currentCRD, err := c.apiextensionClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, required.Name, metav1.GetOptions{})
@@ -642,9 +654,15 @@ func (c *TargetConfigReconciler) manageDisaggregatedSetRoleScalerCRD(ctx context
 		required.Spec.Conversion.Webhook.ClientConfig.Service.Namespace = c.namespace
 	}
 
-	err := injectCertManagerCA(required, c.namespace)
-	if err != nil {
-		return nil, false, err
+	// Only inject cert-manager CA if the CRD has the annotation (e.g., LeaderWorkerSet with conversion webhook)
+	// DisaggregatedSet CRDs don't have conversion webhooks and don't need this annotation
+	if annotations := required.GetAnnotations(); annotations != nil {
+		if _, ok := annotations[CertManagerInjectCaAnnotation]; ok {
+			err := injectCertManagerCA(required, c.namespace)
+			if err != nil {
+				return nil, false, err
+			}
+		}
 	}
 
 	currentCRD, err := c.apiextensionClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, required.Name, metav1.GetOptions{})
