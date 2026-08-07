@@ -1,0 +1,7 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: lws-validating-webhook-configuration
+webhooks:
+- name: vdisaggregatedset.kb.io
+  failurePolicy: Ignore
