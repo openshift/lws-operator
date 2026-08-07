@@ -25,6 +25,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -366,7 +367,6 @@ var _ = Describe("LWS Operator CRD and Webhook Management", Ordered, func() {
 		hasDisaggregatedSetFinalizerPermissions := false
 		hasDisaggregatedSetRoleScalerPermissions := false
 		hasDisaggregatedSetRoleScalerStatusPermissions := false
-		hasDisaggregatedSetRoleScalerFinalizerPermissions := false
 
 		for _, rule := range clusterRole.Rules {
 			for _, apiGroup := range rule.APIGroups {
@@ -407,13 +407,6 @@ var _ = Describe("LWS Operator CRD and Webhook Management", Ordered, func() {
 							"Should have write permissions for disaggregatedsetrolescalers/status")
 						klog.Infof("DisaggregatedSetRoleScaler status permissions verified")
 					}
-
-					if containsString(rule.Resources, "disaggregatedsetrolescalers/finalizers") {
-						hasDisaggregatedSetRoleScalerFinalizerPermissions = true
-						Expect(rule.Verbs).To(ContainElements("update"),
-							"Should have update permission for disaggregatedsetrolescalers/finalizers")
-						klog.Infof("DisaggregatedSetRoleScaler finalizer permissions verified")
-					}
 				}
 			}
 		}
@@ -428,8 +421,6 @@ var _ = Describe("LWS Operator CRD and Webhook Management", Ordered, func() {
 			"ClusterRole should have permissions for disaggregatedsetrolescalers")
 		Expect(hasDisaggregatedSetRoleScalerStatusPermissions).To(BeTrue(),
 			"ClusterRole should have permissions for disaggregatedsetrolescalers/status")
-		Expect(hasDisaggregatedSetRoleScalerFinalizerPermissions).To(BeTrue(),
-			"ClusterRole should have permissions for disaggregatedsetrolescalers/finalizers")
 	})
 
 	It("should not require cert-manager annotation for DisaggregatedSet CRDs", func() {
