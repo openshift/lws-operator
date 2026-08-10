@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -108,9 +107,6 @@ func runSerial(suite TestSuite, ginkgoConfig types.SuiteConfig, reporterConfig t
 	if reporterConfig.JSONReport != "" {
 		reporterConfig.JSONReport = AbsPathForGeneratedAsset(reporterConfig.JSONReport, suite, cliConfig, 0)
 	}
-	if reporterConfig.GoJSONReport != "" {
-		reporterConfig.GoJSONReport = AbsPathForGeneratedAsset(reporterConfig.GoJSONReport, suite, cliConfig, 0)
-	}
 	if reporterConfig.JUnitReport != "" {
 		reporterConfig.JUnitReport = AbsPathForGeneratedAsset(reporterConfig.JUnitReport, suite, cliConfig, 0)
 	}
@@ -160,15 +156,12 @@ func runSerial(suite TestSuite, ginkgoConfig types.SuiteConfig, reporterConfig t
 
 func runParallel(suite TestSuite, ginkgoConfig types.SuiteConfig, reporterConfig types.ReporterConfig, cliConfig types.CLIConfig, goFlagsConfig types.GoFlagsConfig, additionalArgs []string) TestSuite {
 	type procResult struct {
-		proc                 int
-		exitResult           string
 		passed               bool
 		hasProgrammaticFocus bool
 	}
 
 	numProcs := cliConfig.ComputedProcs()
 	procOutput := make([]*bytes.Buffer, numProcs)
-	procExitResult := make([]string, numProcs)
 	coverProfiles := []string{}
 
 	blockProfiles := []string{}
@@ -185,9 +178,6 @@ func runParallel(suite TestSuite, ginkgoConfig types.SuiteConfig, reporterConfig
 
 	if reporterConfig.JSONReport != "" {
 		reporterConfig.JSONReport = AbsPathForGeneratedAsset(reporterConfig.JSONReport, suite, cliConfig, 0)
-	}
-	if reporterConfig.GoJSONReport != "" {
-		reporterConfig.GoJSONReport = AbsPathForGeneratedAsset(reporterConfig.GoJSONReport, suite, cliConfig, 0)
 	}
 	if reporterConfig.JUnitReport != "" {
 		reporterConfig.JUnitReport = AbsPathForGeneratedAsset(reporterConfig.JUnitReport, suite, cliConfig, 0)
@@ -228,20 +218,16 @@ func runParallel(suite TestSuite, ginkgoConfig types.SuiteConfig, reporterConfig
 		args = append(args, additionalArgs...)
 
 		cmd, buf := buildAndStartCommand(suite, args, false)
-		var exited atomic.Bool
 		procOutput[proc-1] = buf
-		server.RegisterAlive(proc, func() bool { return !exited.Load() })
+		server.RegisterAlive(proc, func() bool { return cmd.ProcessState == nil || !cmd.ProcessState.Exited() })
 
 		go func() {
 			cmd.Wait()
 			exitStatus := cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus()
 			procResults <- procResult{
-				proc:                 proc,
-				exitResult:           cmd.ProcessState.String(),
 				passed:               (exitStatus == 0) || (exitStatus == types.GINKGO_FOCUS_EXIT_CODE),
 				hasProgrammaticFocus: exitStatus == types.GINKGO_FOCUS_EXIT_CODE,
 			}
-			exited.Store(true)
 		}()
 	}
 
@@ -250,7 +236,6 @@ func runParallel(suite TestSuite, ginkgoConfig types.SuiteConfig, reporterConfig
 		result := <-procResults
 		passed = passed && result.passed
 		suite.HasProgrammaticFocus = suite.HasProgrammaticFocus || result.hasProgrammaticFocus
-		procExitResult[result.proc-1] = result.exitResult
 	}
 	if passed {
 		suite.State = TestSuiteStatePassed
@@ -270,8 +255,6 @@ func runParallel(suite TestSuite, ginkgoConfig types.SuiteConfig, reporterConfig
 		for proc := 1; proc <= cliConfig.ComputedProcs(); proc++ {
 			fmt.Fprintf(formatter.ColorableStdErr, formatter.F("{{bold}}Output from proc %d:{{/}}\n", proc))
 			fmt.Fprintln(os.Stderr, formatter.Fi(1, "%s", procOutput[proc-1].String()))
-			fmt.Fprintf(formatter.ColorableStdErr, formatter.F("{{bold}}Exit result of proc %d:{{/}}\n", proc))
-			fmt.Fprintln(os.Stderr, formatter.Fi(1, "%s\n", procExitResult[proc-1]))
 		}
 		fmt.Fprintf(os.Stderr, "** End **")
 	}

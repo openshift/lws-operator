@@ -1,6 +1,6 @@
 /*
-This command is used to run the Cluster Kube API Server Operator tests extension for OpenShift.
-It registers the Cluster Kube API Server Operator tests with the OpenShift Tests Extension framework
+This command is used to run the Leader Worker Set Operator tests extension for OpenShift.
+It registers the Leader Worker Set Operator tests with the OpenShift Tests Extension framework
 and provides a command-line interface to execute them.
 For further information, please refer to the documentation at:
 https://github.com/openshift-eng/openshift-tests-extension/blob/main/cmd/example-tests/main.go
@@ -72,7 +72,7 @@ func prepareOperatorTestsRegistry() (*oteextension.Registry, error) {
 	extension.AddSuite(oteextension.Suite{
 		Name: "openshift/lws-operator/operator",
 		Qualifiers: []string{
-			`name.contains("[Operator]"))`,
+			"name.contains('[Operator]')",
 		},
 	})
 
