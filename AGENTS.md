@@ -5,7 +5,7 @@ This file provides guidance for AI agents working with the OpenShift LeaderWorke
 ## Overview
 
 **What is LeaderWorkerSet Operator?**
-An OpenShift operator that deploys and manages the upstream [LeaderWorkerSet (LWS) controller](https://github.com/openshift/kubernetes-sigs-lws) on OpenShift clusters. LeaderWorkerSet is a Kubernetes API for deploying groups of pods as a unit of replication, primarily targeting AI/ML inference workloads — especially multi-host inference where an LLM is sharded across multiple devices/nodes.
+An OpenShift operator that deploys and manages the [LeaderWorkerSet (LWS) controller](https://github.com/kubernetes-sigs/lws) on OpenShift clusters via the [OpenShift fork](https://github.com/openshift/kubernetes-sigs-lws) (tracked by `operand-git-ref`). LeaderWorkerSet is a Kubernetes API for deploying groups of pods as a unit of replication, primarily targeting AI/ML inference workloads — especially multi-host inference where an LLM is sharded across multiple devices/nodes.
 
 The operator follows the **operator-operand pattern**: the operator itself manages the lifecycle of the LWS controller (the "operand"), which in turn manages `LeaderWorkerSet` custom resources created by end users. The operand runs as a Deployment (`lws-controller-manager`) in the `openshift-lws-operator` namespace.
 
@@ -90,7 +90,7 @@ The operator runs two controllers, wired in `pkg/operator/starter.go` via the li
 
 **Key Concepts:**
 - **Embedded assets via `//go:embed`:** Upstream LWS manifests are embedded in `bindata/assets/` and read at runtime via `bindata.MustAsset()`.
-- **Server-side apply:** Uses `resourceapply.Apply*` functions for declarative resource management.
+- **Library-go declarative management:** Uses library-go `resourceapply.Apply*` functions to ensure resources match the desired state.
 - **Owner references:** All managed resources get owner references pointing to the `LeaderWorkerSetOperator` CR.
 - **Dynamic namespace substitution:** Namespace placeholders (`SERVICE_NAMESPACE`, `CERTIFICATE_NAMESPACE`) in embedded manifests are replaced at runtime.
 - **cert-manager integration:** TLS certificates are managed by cert-manager, not self-signed by the operator. The operator creates Issuer and Certificate CRs and injects the `cert-manager.io/inject-ca-from` annotation into webhooks and CRDs.

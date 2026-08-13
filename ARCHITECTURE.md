@@ -2,7 +2,7 @@
 
 ## Overview
 
-LeaderWorkerSet Operator is an OpenShift operator that deploys and manages the upstream [LeaderWorkerSet (LWS) controller](https://github.com/openshift/kubernetes-sigs-lws) on OpenShift clusters. LeaderWorkerSet is a Kubernetes API for deploying groups of pods as a unit of replication, primarily targeting AI/ML inference workloads — especially multi-host inference where an LLM is sharded across multiple devices/nodes.
+LeaderWorkerSet Operator is an OpenShift operator that deploys and manages the [LeaderWorkerSet (LWS) controller](https://github.com/kubernetes-sigs/lws) on OpenShift clusters via the [OpenShift fork](https://github.com/openshift/kubernetes-sigs-lws) (tracked by `operand-git-ref`). LeaderWorkerSet is a Kubernetes API for deploying groups of pods as a unit of replication, primarily targeting AI/ML inference workloads — especially multi-host inference where an LLM is sharded across multiple devices/nodes.
 
 The operator follows the operator-operand pattern: it manages the lifecycle of the LWS controller (the "operand"), which in turn manages `LeaderWorkerSet` custom resources created by end users.
 
@@ -91,7 +91,7 @@ The CR must be named `cluster` (enforced via CEL validation).
 5. **ClusterRoleBindings** — applies manager, metrics-reader, proxy ClusterRoleBindings with namespace substitution on subjects
 6. **Roles** — applies leader-election and prometheus-k8s Roles
 7. **RoleBindings** — applies leader-election and prometheus-k8s RoleBindings
-8. **Services** — applies webhook service and controller-manager-metrics service
+8. **Webhook Service** — applies webhook service
 9. **cert-manager Issuer** — creates self-signed Issuer CR via dynamic client
 10. **cert-manager Certificates** — creates webhook serving cert and metrics cert with DNS name substitution (`SERVICE_NAME`, `SERVICE_NAMESPACE`)
 11. **Secret readiness** — verifies webhook and metrics TLS secrets have `tls.crt` and `tls.key` populated; tracks resource versions in spec annotations
@@ -122,33 +122,6 @@ The operator uses **cert-manager** for TLS certificate management:
 - **DNS names** — Certificate DNS names include `SERVICE_NAME.SERVICE_NAMESPACE.svc` and `SERVICE_NAME.SERVICE_NAMESPACE.svc.cluster.local`, with placeholders substituted at runtime
 
 The operator requires cert-manager to be installed on the cluster and checks for it at each reconciliation cycle.
-
-## Embedded Asset Construction
-
-Operand Kubernetes resources are read from embedded YAML assets in `bindata/assets/lws-controller-generated/`:
-
-| Resource | Asset File | Purpose |
-|----------|-----------|---------|
-| Deployment | `apps_v1_deployment_lws-controller-manager.yaml` | LWS controller, with image/args/placement customization |
-| ServiceAccount | `v1_serviceaccount_lws-controller-manager.yaml` | Identity for the controller pods |
-| ClusterRole (manager) | `rbac..._clusterrole_lws-manager-role.yaml` | RBAC for managing LeaderWorkerSet resources |
-| ClusterRole (metrics) | `rbac..._clusterrole_lws-metrics-reader.yaml` | RBAC for metrics access |
-| ClusterRole (proxy) | `rbac..._clusterrole_lws-proxy-role.yaml` | RBAC for kube-rbac-proxy |
-| ClusterRoleBindings | `rbac..._clusterrolebinding_lws-*.yaml` | Bindings for the above roles |
-| Role (election) | `rbac..._role_lws-leader-election-role.yaml` | Leader election RBAC |
-| Role (monitoring) | `rbac..._role_lws-prometheus-k8s.yaml` | Prometheus monitoring RBAC |
-| RoleBindings | `rbac..._rolebinding_lws-*.yaml` | Bindings for the above roles |
-| Service (webhook) | `v1_service_lws-webhook-service.yaml` | Webhook endpoint |
-| Service (metrics) | `v1_service_lws-controller-manager-metrics-service.yaml` | Metrics endpoint |
-| MutatingWebhookConfig | `admissionregistration..._mutatingwebhookconfiguration_*.yaml` | Webhook registration |
-| ValidatingWebhookConfig | `admissionregistration..._validatingwebhookconfiguration_*.yaml` | Validation webhook registration |
-| CRD | `apiextensions..._customresourcedefinition_leaderworkersets.*.yaml` | LeaderWorkerSet CRD with conversion webhook |
-| ServiceMonitor | `monitoring..._servicemonitor_*.yaml` | Prometheus monitoring config |
-| Issuer | `cert-manager..._issuer_lws-selfsigned-issuer.yaml` | Self-signed cert-manager Issuer |
-| Certificate (webhook) | `cert-manager..._certificate_lws-serving-cert.yaml` | Webhook TLS certificate |
-| Certificate (metrics) | `cert-manager..._certificate_lws-metrics-cert.yaml` | Metrics TLS certificate |
-
-These assets are generated from the upstream LWS kustomize manifests via `make generate-controller-manifests` (`hack/update-lws-controller-manifests.sh`). The upstream git ref is tracked in the `operand-git-ref` file.
 
 ## Build System
 
