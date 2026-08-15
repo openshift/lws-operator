@@ -552,36 +552,51 @@ func (c *TargetConfigReconciler) manageServiceAccount(ctx context.Context, owner
 }
 
 func (c *TargetConfigReconciler) manageCustomResourceDefinition(ctx context.Context, ownerReference metav1.OwnerReference) (*apiextensionv1.CustomResourceDefinition, bool, error) {
-	required := resourceread.ReadCustomResourceDefinitionV1OrDie(bindata.MustAsset("assets/lws-controller-generated/apiextensions.k8s.io_v1_customresourcedefinition_leaderworkersets.leaderworkerset.x-k8s.io.yaml"))
-	required.OwnerReferences = []metav1.OwnerReference{
-		ownerReference,
+	crdFiles := []string{
+		"assets/lws-controller-generated/apiextensions.k8s.io_v1_customresourcedefinition_leaderworkersets.leaderworkerset.x-k8s.io.yaml",
+		"assets/lws-controller-generated/apiextensions.k8s.io_v1_customresourcedefinition_disaggregatedsets.disaggregatedset.x-k8s.io.yaml",
+		"assets/lws-controller-generated/apiextensions.k8s.io_v1_customresourcedefinition_disaggregatedsetrolescalers.disaggregatedset.x-k8s.io.yaml",
 	}
 
-	if required.Spec.Conversion != nil &&
-		required.Spec.Conversion.Webhook != nil &&
-		required.Spec.Conversion.Webhook.ClientConfig != nil &&
-		required.Spec.Conversion.Webhook.ClientConfig.Service != nil {
-		required.Spec.Conversion.Webhook.ClientConfig.Service.Namespace = c.namespace
-	}
+	for _, crdFile := range crdFiles {
+		required := resourceread.ReadCustomResourceDefinitionV1OrDie(bindata.MustAsset(crdFile))
+		required.OwnerReferences = []metav1.OwnerReference{
+			ownerReference,
+		}
 
-	err := injectCertManagerCA(required, c.namespace)
-	if err != nil {
-		return nil, false, err
-	}
+		if required.Spec.Conversion != nil &&
+			required.Spec.Conversion.Webhook != nil &&
+			required.Spec.Conversion.Webhook.ClientConfig != nil &&
+			required.Spec.Conversion.Webhook.ClientConfig.Service != nil {
+			required.Spec.Conversion.Webhook.ClientConfig.Service.Namespace = c.namespace
+		}
 
-	currentCRD, err := c.apiextensionClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, required.Name, metav1.GetOptions{})
-	switch {
-	case apierrors.IsNotFound(err):
-		// no action needed
-	case err != nil && !apierrors.IsNotFound(err):
-		return nil, false, err
-	case err == nil:
-		if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil {
-			required.Spec.Conversion.Webhook.ClientConfig.CABundle = currentCRD.Spec.Conversion.Webhook.ClientConfig.CABundle
+		if _, ok := required.Annotations[CertManagerInjectCaAnnotation]; ok {
+			err := injectCertManagerCA(required, c.namespace)
+			if err != nil {
+				return nil, false, err
+			}
+		}
+
+		currentCRD, err := c.apiextensionClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, required.Name, metav1.GetOptions{})
+		switch {
+		case apierrors.IsNotFound(err):
+			// no action needed
+		case err != nil && !apierrors.IsNotFound(err):
+			return nil, false, err
+		case err == nil:
+			if required.Spec.Conversion != nil && required.Spec.Conversion.Webhook != nil && required.Spec.Conversion.Webhook.ClientConfig != nil {
+				required.Spec.Conversion.Webhook.ClientConfig.CABundle = currentCRD.Spec.Conversion.Webhook.ClientConfig.CABundle
+			}
+		}
+
+		_, _, err = resourceapply.ApplyCustomResourceDefinitionV1(ctx, c.apiextensionClient.ApiextensionsV1(), c.eventRecorder, required)
+		if err != nil {
+			return nil, false, err
 		}
 	}
 
-	return resourceapply.ApplyCustomResourceDefinitionV1(ctx, c.apiextensionClient.ApiextensionsV1(), c.eventRecorder, required)
+	return nil, false, nil
 }
 
 func (c *TargetConfigReconciler) manageMutatingWebhook(ctx context.Context, ownerReference metav1.OwnerReference) (*admissionv1.MutatingWebhookConfiguration, bool, error) {

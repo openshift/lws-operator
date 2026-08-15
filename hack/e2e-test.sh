@@ -101,7 +101,6 @@ function run_e2e_operand_tests() {
   git clone -b "${BRANCH}" "https://github.com/openshift/kubernetes-sigs-lws" "${CLONE_PATH}"
   pushd "${CLONE_PATH}"
     GO_VERSION=$(grep "^go " go.mod | awk '{print $2}')
-    # extract the version in "1.24" format
     MAJOR_GO_VERSION=$(echo "${GO_VERSION}" | awk -F'.' '{print $1"."$2}')
     echo "GO_VERSION: $GO_VERSION MAJOR_GO_VERSION: $MAJOR_GO_VERSION"
     if ! go version | grep -q "go${MAJOR_GO_VERSION}"; then
@@ -110,7 +109,35 @@ function run_e2e_operand_tests() {
       export PATH=${CLONE_PATH}/go/bin:$PATH
     fi
   popd
-  LWS_NAMESPACE=openshift-lws-operator $GINKGO "${GINKGO_JUNIT_OPTS}" -v /"${CLONE_PATH}"/test/e2e/...
+
+  LWS_NAMESPACE=openshift-lws-operator $GINKGO "${GINKGO_JUNIT_OPTS}" -v --skip-package=upgrade "${CLONE_PATH}/test/e2e/..."
+
+  echo "Running e2e upgrade tests for operand"
+  SNAPSHOT_PATH="$(mktemp)"
+
+  echo "Running upgrade phase: before"
+  LWS_NAMESPACE=openshift-lws-operator \
+  LWS_UPGRADE_PHASE=before \
+  LWS_UPGRADE_SNAPSHOT_PATH="$SNAPSHOT_PATH" \
+  IMAGE_TAG="$RELATED_IMAGE_OPERAND_IMAGE" \
+    $GINKGO "${GINKGO_JUNIT_OPTS}" -v "${CLONE_PATH}/test/e2e/upgrade"
+
+  echo "Upgrading operand image"
+  oc set env deployment/openshift-lws-operator \
+    -n openshift-lws-operator \
+    RELATED_IMAGE_OPERAND_IMAGE="$RELATED_IMAGE_OPERAND_IMAGE"
+  oc wait deployment lws-controller-manager \
+    -n openshift-lws-operator \
+    --for=condition=Available --timeout=5m
+
+  echo "Running upgrade phase: after"
+  LWS_NAMESPACE=openshift-lws-operator \
+  LWS_UPGRADE_PHASE=after \
+  LWS_UPGRADE_SNAPSHOT_PATH="$SNAPSHOT_PATH" \
+  IMAGE_TAG="$RELATED_IMAGE_OPERAND_IMAGE" \
+    $GINKGO "${GINKGO_JUNIT_OPTS}" -v "${CLONE_PATH}/test/e2e/upgrade"
+
+  rm -f "$SNAPSHOT_PATH"
 }
 
 cert_manager_deploy
