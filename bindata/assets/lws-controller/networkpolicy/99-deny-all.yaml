@@ -1,0 +1,14 @@
+# Default deny for LWS operator and operand pods. Applied last so allow
+# policies exist before isolation takes effect.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: lws-deny-all
+  namespace: openshift-lws-operator
+spec:
+  podSelector:
+    matchLabels:
+      app.openshift.io/name: lws
+  policyTypes:
+    - Ingress
+    - Egress

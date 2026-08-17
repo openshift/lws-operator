@@ -1,0 +1,16 @@
+# Allow outbound traffic to kube-apiserver.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: lws-allow-egress-kube-apiserver
+  namespace: openshift-lws-operator
+spec:
+  podSelector:
+    matchLabels:
+      app.openshift.io/name: lws
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - protocol: TCP
+          port: 6443

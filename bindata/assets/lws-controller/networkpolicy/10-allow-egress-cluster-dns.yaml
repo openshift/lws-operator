@@ -1,0 +1,25 @@
+# Allow traffic to cluster DNS (OpenShift CoreDNS).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: lws-allow-egress-cluster-dns
+  namespace: openshift-lws-operator
+spec:
+  podSelector:
+    matchLabels:
+      app.openshift.io/name: lws
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-dns
+          podSelector:
+            matchLabels:
+              dns.operator.openshift.io/daemonset-dns: default
+      ports:
+        - protocol: UDP
+          port: dns
+        - protocol: TCP
+          port: dns-tcp
