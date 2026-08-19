@@ -1,0 +1,16 @@
+# Allow all egress for operator and operand pods.
+#
+# Covers DNS (openshift-dns), Kubernetes API server communication, and other
+# outbound traffic required in cloud-native and hostNetwork cluster configs.
+# API address and port are not known at manifest time.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: lws-allow-egress
+  namespace: openshift-lws-operator
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - {}

@@ -46,10 +46,7 @@ const (
 	CertManagerInjectCaAnnotation = "cert-manager.io/inject-ca-from"
 	// PrometheusClientCertsPath is a mounted secret in the openshift-monitoring prometheus
 	PrometheusClientCertsPath = "/etc/prometheus/secrets/metrics-client-certs/"
-	// SharedAppNameLabel selects both the operator and operand pods for NetworkPolicies.
-	SharedAppNameLabel = "app.openshift.io/name"
-	SharedAppNameValue = "lws"
-	networkPolicyDir   = "assets/lws-controller/networkpolicy"
+	networkPolicyDir          = "assets/lws-controller/networkpolicy"
 )
 
 type TargetConfigReconciler struct {
@@ -705,15 +702,6 @@ func (c *TargetConfigReconciler) manageDeployments(ctx context.Context,
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-
-	if required.Labels == nil {
-		required.Labels = map[string]string{}
-	}
-	required.Labels[SharedAppNameLabel] = SharedAppNameValue
-	if required.Spec.Template.Labels == nil {
-		required.Spec.Template.Labels = map[string]string{}
-	}
-	required.Spec.Template.Labels[SharedAppNameLabel] = SharedAppNameValue
 
 	if c.targetImage != "" {
 		images := map[string]string{
