@@ -1,0 +1,26 @@
+# Allow metrics scrape traffic to/from platform monitoring.
+# Use numeric port 8443 (pod/server port). OVN-Kubernetes does not support port names.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: lws-allow-metrics
+  namespace: openshift-lws-operator
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              openshift.io/cluster-monitoring: "true"
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-monitoring
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-user-workload-monitoring
+      ports:
+        - protocol: TCP
+          port: 8443

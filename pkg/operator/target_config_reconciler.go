@@ -3,6 +3,7 @@ package operator
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -45,6 +46,7 @@ const (
 	CertManagerInjectCaAnnotation = "cert-manager.io/inject-ca-from"
 	// PrometheusClientCertsPath is a mounted secret in the openshift-monitoring prometheus
 	PrometheusClientCertsPath = "/etc/prometheus/secrets/metrics-client-certs/"
+	networkPolicyDir          = "assets/lws-controller/networkpolicy"
 )
 
 type TargetConfigReconciler struct {
@@ -270,6 +272,11 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 
 	_, _, err = c.manageServiceMonitor(ctx, ownerReference)
 	if err != nil {
+		return err
+	}
+
+	// Apply allow policies before deny-all (filenames are sorted: 10-* then 99-*).
+	if err = c.manageNetworkPolicies(ctx, ownerReference, specAnnotations); err != nil {
 		return err
 	}
 
@@ -661,6 +668,28 @@ func (c *TargetConfigReconciler) manageServiceMonitor(ctx context.Context, owner
 	}
 
 	return ApplyServiceMonitor(ctx, c.dynamicClient, c.eventRecorder, serviceMonitor, c.resourceCache)
+}
+
+func (c *TargetConfigReconciler) manageNetworkPolicies(ctx context.Context, ownerReference metav1.OwnerReference, specAnnotations map[string]string) error {
+	files, err := bindata.AssetDir(networkPolicyDir)
+	if err != nil {
+		return fmt.Errorf("failed to read networkpolicy directory %q: %w", networkPolicyDir, err)
+	}
+
+	for _, file := range files {
+		required := resourceread.ReadNetworkPolicyV1OrDie(bindata.MustAsset(filepath.Join(networkPolicyDir, file)))
+		required.Namespace = c.namespace
+		required.OwnerReferences = []metav1.OwnerReference{
+			ownerReference,
+		}
+
+		policy, _, err := resourceapply.ApplyNetworkPolicy(ctx, c.kubeClient.NetworkingV1(), c.eventRecorder, required, c.resourceCache)
+		if err != nil {
+			return fmt.Errorf("unable to manage NetworkPolicy %s: %w", required.Name, err)
+		}
+		specAnnotations["networkpolicy/"+policy.Name] = policy.ResourceVersion
+	}
+	return nil
 }
 
 func (c *TargetConfigReconciler) manageDeployments(ctx context.Context,

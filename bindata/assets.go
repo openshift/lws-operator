@@ -2,6 +2,7 @@ package bindata
 
 import (
 	"embed"
+	"sort"
 )
 
 //go:embed assets/*
@@ -21,4 +22,21 @@ func MustAsset(name string) []byte {
 	}
 
 	return data
+}
+
+// AssetDir returns the sorted list of non-directory entries in the named directory.
+func AssetDir(name string) ([]string, error) {
+	entries, err := f.ReadDir(name)
+	if err != nil {
+		return nil, err
+	}
+	files := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		files = append(files, entry.Name())
+	}
+	sort.Strings(files)
+	return files, nil
 }
