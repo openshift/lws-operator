@@ -90,8 +90,9 @@ GINKGO = $(shell pwd)/_output/tools/bin/ginkgo
 ginkgo: ## Download ginkgo locally if necessary.
 	test -s $(shell pwd)/_output/tools/bin/ginkgo || GOFLAGS=-mod=readonly GOBIN=$(shell pwd)/_output/tools/bin go install github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
 
-test-e2e: ginkgo
-	RUN_OPERATOR_TEST=true GINKGO=$(GINKGO) hack/e2e-test.sh
+test-e2e: GO_TEST_PACKAGES :=./test/e2e
+test-e2e: GO_TEST_FLAGS :=-v -timeout=3h -count=1
+test-e2e: test-unit
 .PHONY: test-e2e
 
 test-e2e-operand: ginkgo

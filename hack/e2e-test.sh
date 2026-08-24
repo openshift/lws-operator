@@ -48,7 +48,6 @@ if [ -n "${ARTIFACT_DIR}" ]; then
   GINKGO_JUNIT_OPTS="--junit-report=${ARTIFACT_DIR}/junit_report.xml"
 fi
 
-
 function cleanup() {
   if [ -n "$CLONE_PATH" ]; then
     rm -rf "${CLONE_PATH}"
@@ -87,11 +86,6 @@ function deploy_lws_operator {
       oc wait deployment openshift-lws-operator -n openshift-lws-operator --for=condition=Available --timeout=5m
       oc wait deployment lws-controller-manager -n openshift-lws-operator --for=create --timeout=2m
       oc wait deployment lws-controller-manager -n openshift-lws-operator --for=condition=Available --timeout=5m
-}
-
-function run_e2e_operator_tests() {
-  echo "Running e2e tests for operator"
-  $GINKGO "${GINKGO_JUNIT_OPTS}" -v ./test/e2e/...
 }
 
 function run_e2e_operand_tests() {
@@ -142,9 +136,6 @@ function run_e2e_operand_tests() {
 
 cert_manager_deploy
 deploy_lws_operator
-if [ "${RUN_OPERATOR_TEST:-}" == 'true' ]; then
-  run_e2e_operator_tests
-fi
 if [ "${RUN_OPERAND_TEST:-}" == 'true' ]; then
   run_e2e_operand_tests
 fi
