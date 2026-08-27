@@ -13,8 +13,11 @@ import (
 
 	"github.com/openshift/library-go/pkg/controller/controllercmd"
 	"github.com/openshift/library-go/pkg/operator/loglevel"
+	"github.com/openshift/library-go/pkg/operator/resource/resourceapply"
+	"github.com/openshift/library-go/pkg/operator/staticresourcecontroller"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
 
+	"github.com/openshift/lws-operator/bindata"
 	operatorconfigclient "github.com/openshift/lws-operator/pkg/generated/clientset/versioned"
 	operatorclientinformers "github.com/openshift/lws-operator/pkg/generated/informers/externalversions"
 	"github.com/openshift/lws-operator/pkg/operator/operatorclient"
@@ -84,6 +87,21 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 		cc.EventRecorder,
 	)
 
+	// StaticResourceController for NetworkPolicies
+	staticResourceController := staticresourcecontroller.NewStaticResourceController(
+		"LWSOperatorNetworkPolicies",
+		bindata.Asset,
+		[]string{
+			"assets/lws-controller/networkpolicy/10-allow-dns.yaml",
+			"assets/lws-controller/networkpolicy/10-allow-operator.yaml",
+			"assets/lws-controller/networkpolicy/10-allow-operand.yaml",
+			"assets/lws-controller/networkpolicy/99-default-deny.yaml",
+		},
+		resourceapply.NewKubeClientHolder(kubeClient),
+		leaderWorkerSetOperatorClient,
+		cc.EventRecorder,
+	).AddKubeInformers(kubeInformersForNamespaces)
+
 	logLevelController := loglevel.NewClusterOperatorLoggingController(leaderWorkerSetOperatorClient, cc.EventRecorder)
 
 	klog.Infof("Starting informers")
@@ -92,6 +110,8 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 
 	klog.Infof("Starting log level controller")
 	go logLevelController.Run(ctx, 1)
+	klog.Infof("Starting NetworkPolicy static resource controller")
+	go staticResourceController.Run(ctx, 1)
 	klog.Infof("Starting target config reconciler")
 	go targetConfigReconciler.Run(ctx, 1)
 

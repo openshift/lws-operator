@@ -1,0 +1,26 @@
+# Allow DNS egress and ingress for all pods in the namespace
+# Required for any pod (including E2E test pods) to resolve service names
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: lws-allow-dns
+  namespace: openshift-lws-operator
+spec:
+  podSelector: {}  # Matches all pods
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow DNS responses from openshift-dns namespace
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-dns
+      ports:
+        - protocol: UDP
+        - protocol: TCP
+  egress:
+    # Allow all egress
+    # Needed for DNS to work (CoreDNS needs to reach kube-apiserver)
+    # and for E2E tests to reach service endpoints
+    - {}
