@@ -6,10 +6,10 @@ require (
 	github.com/onsi/ginkgo/v2 v2.27.4
 	github.com/onsi/gomega v1.39.0
 	github.com/openshift-eng/openshift-tests-extension v0.0.0-20260707142426-572a3e9deb7a
-	github.com/openshift/api v0.0.0-20260731195344-05ea89db4588
+	github.com/openshift/api v0.0.0-20260805215214-cfb63858e9d7
 	github.com/openshift/build-machinery-go v0.0.0-20251023084048-5d77c1a5e5af
-	github.com/openshift/client-go v0.0.0-20260728123811-92b24dd0dd1f
-	github.com/openshift/library-go v0.0.0-20260730085458-26e4f3728f73
+	github.com/openshift/client-go v0.0.0-20260806041845-b74fb348f1e7
+	github.com/openshift/library-go v0.0.0-20260821093420-6a2a406da642
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.88.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/spf13/cobra v1.10.2
