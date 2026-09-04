@@ -9,6 +9,7 @@ import (
 	admissionv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextclientv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -99,6 +100,8 @@ func NewTargetConfigReconciler(
 		kubeInformersForNamespaces.InformersFor(namespace).Apps().V1().Deployments().Informer(),
 		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().ConfigMaps().Informer(),
 		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().Secrets().Informer(),
+		// for operand network policies - watch for deletion/modification
+		kubeInformersForNamespaces.InformersFor(namespace).Networking().V1().NetworkPolicies().Informer(),
 	).ResyncEvery(time.Minute*5).
 		WithSync(c.sync).
 		WithSyncDegradedOnError(leaderWorkerSetOperatorClient).
@@ -269,6 +272,12 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 	}
 
 	_, _, err = c.manageServiceMonitor(ctx, ownerReference)
+	if err != nil {
+		return err
+	}
+
+	// Apply operand NetworkPolicy
+	_, _, err = c.manageNetworkPolicyOperandAllow(ctx, ownerReference)
 	if err != nil {
 		return err
 	}
@@ -766,4 +775,15 @@ func injectCertManagerCA(obj metav1.Object, namespace string) error {
 	annotations[CertManagerInjectCaAnnotation] = injectAnnotation
 	obj.SetAnnotations(annotations)
 	return nil
+}
+
+// manageNetworkPolicyOperandAllow manages the allow network policy for the operand pods
+func (c *TargetConfigReconciler) manageNetworkPolicyOperandAllow(ctx context.Context, ownerReference metav1.OwnerReference) (*networkingv1.NetworkPolicy, bool, error) {
+	required := resourceread.ReadNetworkPolicyV1OrDie(bindata.MustAsset("assets/lws-controller/networkpolicy/allow-operand.yaml"))
+	required.Namespace = c.namespace
+	required.OwnerReferences = []metav1.OwnerReference{
+		ownerReference,
+	}
+
+	return resourceapply.ApplyNetworkPolicy(ctx, c.kubeClient.NetworkingV1(), c.eventRecorder, required, c.resourceCache)
 }
