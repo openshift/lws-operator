@@ -9,6 +9,7 @@ import (
 	admissionv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextclientv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -99,6 +100,8 @@ func NewTargetConfigReconciler(
 		kubeInformersForNamespaces.InformersFor(namespace).Apps().V1().Deployments().Informer(),
 		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().ConfigMaps().Informer(),
 		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().Secrets().Informer(),
+		// for operand network policies - watch for deletion/modification
+		kubeInformersForNamespaces.InformersFor(namespace).Networking().V1().NetworkPolicies().Informer(),
 	).ResyncEvery(time.Minute*5).
 		WithSync(c.sync).
 		WithSyncDegradedOnError(leaderWorkerSetOperatorClient).
@@ -271,6 +274,32 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 	_, _, err = c.manageServiceMonitor(ctx, ownerReference)
 	if err != nil {
 		return err
+	}
+
+	// Create allow policy first
+	_, _, err = c.manageNetworkPolicyOperandAllow(ctx, ownerReference)
+	if err != nil {
+		return err
+	}
+
+	// Handle default-deny policy: only create if allow policy exists.
+	// This prevents traffic blocking if the allow policy is accidentally deleted.
+	// If allow policy is missing, delete default-deny so traffic continues.
+	allowExists, err := c.checkNetworkPolicyExists(ctx, c.namespace, "lws-allow-operand")
+	if err != nil {
+		return fmt.Errorf("failed to check if allow policy exists: %w", err)
+	}
+	if allowExists {
+		_, _, err = c.manageNetworkPolicyOperandDefaultDeny(ctx, ownerReference)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Allow policy doesn't exist (creation failed or was deleted), ensure default-deny is also gone
+		if err := c.deleteNetworkPolicyOperandDefaultDeny(ctx, c.namespace); err != nil {
+			// Don't return error - this is cleanup, not critical
+			c.eventRecorder.Warningf("NetworkPolicyCleanup", "failed to delete operand default-deny policy: %v", err)
+		}
 	}
 
 	deployment, _, err := c.manageDeployments(ctx, leaderWorkerSetOperator, ownerReference, specAnnotations)
@@ -766,4 +795,48 @@ func injectCertManagerCA(obj metav1.Object, namespace string) error {
 	annotations[CertManagerInjectCaAnnotation] = injectAnnotation
 	obj.SetAnnotations(annotations)
 	return nil
+}
+
+// manageNetworkPolicyOperandAllow manages the allow network policy for the operand pods
+func (c *TargetConfigReconciler) manageNetworkPolicyOperandAllow(ctx context.Context, ownerReference metav1.OwnerReference) (*networkingv1.NetworkPolicy, bool, error) {
+	required := resourceread.ReadNetworkPolicyV1OrDie(bindata.MustAsset("assets/lws-controller/networkpolicy/10-allow-operand.yaml"))
+	required.Namespace = c.namespace
+	required.OwnerReferences = []metav1.OwnerReference{
+		ownerReference,
+	}
+
+	return resourceapply.ApplyNetworkPolicy(ctx, c.kubeClient.NetworkingV1(), c.eventRecorder, required, c.resourceCache)
+}
+
+// manageNetworkPolicyOperandDefaultDeny manages the default-deny network policy for operand pods only
+func (c *TargetConfigReconciler) manageNetworkPolicyOperandDefaultDeny(ctx context.Context, ownerReference metav1.OwnerReference) (*networkingv1.NetworkPolicy, bool, error) {
+	required := resourceread.ReadNetworkPolicyV1OrDie(bindata.MustAsset("assets/lws-controller/networkpolicy/10-default-deny-operand.yaml"))
+	required.Namespace = c.namespace
+	required.OwnerReferences = []metav1.OwnerReference{
+		ownerReference,
+	}
+
+	return resourceapply.ApplyNetworkPolicy(ctx, c.kubeClient.NetworkingV1(), c.eventRecorder, required, c.resourceCache)
+}
+
+// checkNetworkPolicyExists checks if a network policy exists in a given namespace.
+// Returns (true, nil) if the policy exists, (false, nil) if not found, or (false, error) on API failure.
+func (c *TargetConfigReconciler) checkNetworkPolicyExists(ctx context.Context, namespace, policyName string) (bool, error) {
+	_, err := c.kubeClient.NetworkingV1().NetworkPolicies(namespace).Get(ctx, policyName, metav1.GetOptions{})
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to get NetworkPolicy %s/%s: %w", namespace, policyName, err)
+	}
+	return true, nil
+}
+
+// deleteNetworkPolicyOperandDefaultDeny deletes the operand default-deny network policy
+func (c *TargetConfigReconciler) deleteNetworkPolicyOperandDefaultDeny(ctx context.Context, namespace string) error {
+	err := c.kubeClient.NetworkingV1().NetworkPolicies(namespace).Delete(ctx, "lws-default-deny-operand", metav1.DeleteOptions{})
+	if apierrors.IsNotFound(err) {
+		return nil // Already deleted, not an error
+	}
+	return err
 }
