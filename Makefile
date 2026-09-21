@@ -1,7 +1,7 @@
 all: build
 .PHONY: all
 
-SOURCE_GIT_TAG ?=$(shell git describe --long --tags --abbrev=7 --match 'v[0-9]*' || echo 'v1.0.0-$(SOURCE_GIT_COMMIT)')
+SOURCE_GIT_TAG ?=$(shell git describe --long --tags --abbrev=7 --match 'v[0-9]*' || echo 'v1.1.0-$(SOURCE_GIT_COMMIT)')
 SOURCE_GIT_COMMIT ?=$(shell git rev-parse --short "HEAD^{commit}" 2>/dev/null)
 
 # Use go.mod go version as a single source of truth of Ginkgo version.
@@ -100,6 +100,5 @@ test-e2e-operand: ginkgo
 .PHONY: test-e2e-operand
 
 generate-bundle:
-	operator-sdk generate bundle --input-dir deploy --version 1.0.0 --channels=stable --default-channel=stable --package leader-worker-set --output-dir=.
+	operator-sdk generate bundle --input-dir deploy --version 1.1.0 --channels=stable --default-channel=stable --package leader-worker-set --output-dir=.
 .PHONY: generate-bundle
-
