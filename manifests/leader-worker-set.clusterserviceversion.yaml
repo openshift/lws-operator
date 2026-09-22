@@ -75,6 +75,19 @@ spec:
       - kind: LeaderWorkerSetOperator
         name: leaderworkersetoperators.operator.openshift.io
         version: v1
+        description: Manages the lifecycle of the LeaderWorkerSet controller
+      - kind: LeaderWorkerSet
+        name: leaderworkersets.leaderworkerset.x-k8s.io
+        version: v1
+        description: API for deploying groups of pods as a unit of replication for AI/ML inference workloads, especially multi-host inference where LLMs are sharded across multiple devices on multiple nodes
+      - kind: DisaggregatedSet
+        name: disaggregatedsets.disaggregatedset.x-k8s.io
+        version: v1
+        description: API for coordinated prefill and decode LLM inference workloads on OpenShift, enabling separation of prefill and decode phases for improved resource utilization
+      - kind: DisaggregatedSetRoleScaler
+        name: disaggregatedsetrolescalers.disaggregatedset.x-k8s.io
+        version: v1
+        description: Scaler for managing replica counts of disaggregated prefill and decode roles independently
   description: "Leader Worker Set Operator is based on the [LWS](https://lws.sigs.k8s.io/docs/) open source project.\nLeader Worker Set: An API for deploying a group of pods as a unit of replication. \nIt aims to address common deployment patterns of AI/ML inference workloads, \nespecially multi-host inference workloads where the LLM will be sharded and run across multiple devices on multiple nodes.\n"
   displayName: Leader Worker Set Operator
   icon:
