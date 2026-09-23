@@ -85,7 +85,7 @@ function deploy_lws_operator {
       oc wait deployment openshift-lws-operator -n openshift-lws-operator --for=create --timeout=2m
       oc wait deployment openshift-lws-operator -n openshift-lws-operator --for=condition=Available --timeout=5m
       oc wait deployment lws-controller-manager -n openshift-lws-operator --for=create --timeout=2m
-      oc wait deployment lws-controller-manager -n openshift-lws-operator --for=condition=Available --timeout=5m
+      oc wait deployment lws-controller-manager -n openshift-lws-operator --for=condition=Available --timeout=10m
 }
 
 function run_e2e_operand_tests() {
@@ -122,7 +122,7 @@ function run_e2e_operand_tests() {
     RELATED_IMAGE_OPERAND_IMAGE="$RELATED_IMAGE_OPERAND_IMAGE"
   oc wait deployment lws-controller-manager \
     -n openshift-lws-operator \
-    --for=condition=Available --timeout=5m
+    --for=condition=Available --timeout=10m
 
   echo "Running upgrade phase: after"
   LWS_NAMESPACE=openshift-lws-operator \

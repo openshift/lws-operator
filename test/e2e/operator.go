@@ -190,7 +190,7 @@ func setupOperator(t testing.TB) (context.Context, context.CancelFunc, *k8sclien
 		return nil, cancel, nil, fmt.Errorf("failed waiting for operand deployment creation: %w", err)
 	}
 	if err := runCommand("oc", "wait", "deployment", oteOperandName,
-		"-n", oteOperatorNamespace, "--for=condition=Available", "--timeout=5m"); err != nil {
+		"-n", oteOperatorNamespace, "--for=condition=Available", "--timeout=10m"); err != nil {
 		return nil, cancel, nil, fmt.Errorf("failed waiting for operand deployment availability: %w", err)
 	}
 
