@@ -131,6 +131,11 @@ func setupOperator(t testing.TB) (context.Context, context.CancelFunc, *k8sclien
 		"-l", "app.kubernetes.io/instance=cert-manager", "--timeout=2m"); err != nil {
 		return nil, cancel, nil, fmt.Errorf("failed to wait for cert-manager: %w", err)
 	}
+	klog.Infof("Waiting for cert-manager-webhook deployment to be Available")
+	if err := runCommand("oc", "wait", "deployment", "cert-manager-webhook",
+		"-n", "cert-manager", "--for=condition=Available", "--timeout=5m"); err != nil {
+		return nil, cancel, nil, fmt.Errorf("failed to wait for cert-manager-webhook availability: %w", err)
+	}
 
 	klog.Infof("Writing deploy manifests to temp directory")
 	var err error
