@@ -764,7 +764,7 @@ func injectCertManagerCA(obj metav1.Object, namespace string) error {
 
 // manageNetworkPolicyOperandAllow manages the allow network policy for the operand pods
 func (c *TargetConfigReconciler) manageNetworkPolicyOperandAllow(ctx context.Context, ownerReference metav1.OwnerReference) (*networkingv1.NetworkPolicy, bool, error) {
-	required := resourceread.ReadNetworkPolicyV1OrDie(bindata.MustAsset("assets/lws-controller/networkpolicy/allow-operand.yaml"))
+	required := resourceread.ReadNetworkPolicyV1OrDie(bindata.MustAsset("assets/lws-controller/lws-operand.yaml"))
 	required.Namespace = c.namespace
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
