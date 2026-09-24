@@ -37,7 +37,7 @@ const (
 	oteOperandLabel       = "control-plane=controller-manager"
 	oteOperandName        = "lws-controller-manager"
 	oteOperatorDeployment = "openshift-lws-operator"
-	oteNetworkPolicyName  = "lws-allow-operand"
+	oteNetworkPolicyName  = "lws-operand"
 
 	certManagerURL = "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml"
 )
