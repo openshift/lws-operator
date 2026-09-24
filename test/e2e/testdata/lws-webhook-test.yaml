@@ -1,0 +1,24 @@
+apiVersion: leaderworkerset.x-k8s.io/v1
+kind: LeaderWorkerSet
+metadata:
+  generateName: netpol-e2e-webhook-
+  namespace: default
+spec:
+  replicas: 1
+  leaderWorkerTemplate:
+    size: 1
+    leaderTemplate:
+      metadata:
+        labels:
+          app: netpol-e2e-test
+      spec:
+        containers:
+        - name: leader
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          command: ["sleep", "10"]
+    workerTemplate:
+      spec:
+        containers:
+        - name: worker
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          command: ["sleep", "10"]
