@@ -30,7 +30,7 @@ import (
 //
 // LeaderWorkerSetOperator is the Schema for the LeaderWorkerSetOperator API
 type LeaderWorkerSetOperatorApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
+	metav1.TypeMetaApplyConfiguration    `json:""`
 	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
 	// spec holds user settable values for configuration
 	Spec *LeaderWorkerSetOperatorSpecApplyConfiguration `json:"spec,omitempty"`
