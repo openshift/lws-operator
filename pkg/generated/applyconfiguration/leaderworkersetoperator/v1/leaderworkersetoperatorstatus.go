@@ -25,7 +25,7 @@ import (
 //
 // LeaderWorkerSetOperatorStatus defines the observed state of LeaderWorkerSetOperator
 type LeaderWorkerSetOperatorStatusApplyConfiguration struct {
-	operatorv1.OperatorStatusApplyConfiguration `json:",inline"`
+	operatorv1.OperatorStatusApplyConfiguration `json:""`
 }
 
 // LeaderWorkerSetOperatorStatusApplyConfiguration constructs a declarative configuration of the LeaderWorkerSetOperatorStatus type for use with

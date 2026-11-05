@@ -27,7 +27,7 @@ import (
 )
 
 type Interface interface {
-	Discovery() discovery.DiscoveryInterface
+	Discovery() discovery.DiscoveryInterfaces
 	OpenShiftOperatorV1() openshiftoperatorv1.OpenShiftOperatorV1Interface
 }
 
@@ -43,7 +43,7 @@ func (c *Clientset) OpenShiftOperatorV1() openshiftoperatorv1.OpenShiftOperatorV
 }
 
 // Discovery retrieves the DiscoveryClient
-func (c *Clientset) Discovery() discovery.DiscoveryInterface {
+func (c *Clientset) Discovery() discovery.DiscoveryInterfaces {
 	if c == nil {
 		return nil
 	}
