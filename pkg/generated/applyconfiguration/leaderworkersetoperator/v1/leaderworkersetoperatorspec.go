@@ -27,7 +27,7 @@ import (
 //
 // LeaderWorkerSetOperatorSpec defines the desired state of LeaderWorkerSetOperator
 type LeaderWorkerSetOperatorSpecApplyConfiguration struct {
-	operatorv1.OperatorSpecApplyConfiguration `json:",inline"`
+	operatorv1.OperatorSpecApplyConfiguration `json:""`
 	// nodePlacement provides explicit control over the scheduling of lws-controller-manager pods.
 	//
 	// If unset, the operator does not inject nodeSelector or tolerations beyond the upstream operand manifest.
