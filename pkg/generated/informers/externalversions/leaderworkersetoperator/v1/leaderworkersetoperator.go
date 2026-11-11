@@ -32,11 +32,39 @@ import (
 )
 
 // LeaderWorkerSetOperatorInformer provides access to a shared informer and lister for
-// LeaderWorkerSetOperators.
+// LeaderWorkerSetOperators. Prefer using the type-safe variant (see [TypedLeaderWorkerSetOperatorInformer]).
 type LeaderWorkerSetOperatorInformer interface {
 	Informer() cache.SharedIndexInformer
 	Lister() leaderworkersetoperatorv1.LeaderWorkerSetOperatorLister
 }
+
+// TypedLeaderWorkerSetOperatorInformer provides access to a shared informer and lister for
+// LeaderWorkerSetOperators, including the type-safe TypedInformer variant.
+// It is a superset of LeaderWorkerSetOperatorInformer.
+type TypedLeaderWorkerSetOperatorInformer interface {
+	Informer() cache.SharedIndexInformer
+	TypedInformer() LeaderWorkerSetOperatorIndexInformer
+	Lister() leaderworkersetoperatorv1.LeaderWorkerSetOperatorLister
+}
+
+// LeaderWorkerSetOperatorIndexInformer is a wrapper around the underlying [cache.SharedIndexInformer]
+// with type-safe variants of several methods.
+type LeaderWorkerSetOperatorIndexInformer cache.TypedSharedIndexInformer[*apisleaderworkersetoperatorv1.LeaderWorkerSetOperator]
+
+// LeaderWorkerSetOperatorHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerFuncs] for LeaderWorkerSetOperator.
+type LeaderWorkerSetOperatorHandlerFuncs = cache.TypedResourceEventHandlerFuncs[*apisleaderworkersetoperatorv1.LeaderWorkerSetOperator]
+
+// LeaderWorkerSetOperatorDetailedHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerDetailedFuncs] for LeaderWorkerSetOperator.
+type LeaderWorkerSetOperatorDetailedHandlerFuncs = cache.TypedResourceEventHandlerDetailedFuncs[*apisleaderworkersetoperatorv1.LeaderWorkerSetOperator]
+
+// LeaderWorkerSetOperatorFilteringHandler is a specialization of [cache.TypedFilteringResourceEventHandler] for LeaderWorkerSetOperator.
+type LeaderWorkerSetOperatorFilteringHandler = cache.TypedFilteringResourceEventHandler[*apisleaderworkersetoperatorv1.LeaderWorkerSetOperator]
+
+// LeaderWorkerSetOperatorIndexers is a specialization of [cache.TypedIndexers] for LeaderWorkerSetOperator.
+type LeaderWorkerSetOperatorIndexers = cache.TypedIndexers[*apisleaderworkersetoperatorv1.LeaderWorkerSetOperator]
+
+// DeletedLeaderWorkerSetOperator is a specialization of [cache.DeletedObject] for LeaderWorkerSetOperator.
+type DeletedLeaderWorkerSetOperator = cache.DeletedObject[*apisleaderworkersetoperatorv1.LeaderWorkerSetOperator]
 
 type leaderWorkerSetOperatorInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
@@ -46,25 +74,49 @@ type leaderWorkerSetOperatorInformer struct {
 // NewLeaderWorkerSetOperatorInformer constructs a new informer for LeaderWorkerSetOperator type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedLeaderWorkerSetOperatorInformer]).
 func NewLeaderWorkerSetOperatorInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
 	return NewLeaderWorkerSetOperatorInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+}
+
+// NewTypedLeaderWorkerSetOperatorInformer constructs a new informer for LeaderWorkerSetOperator type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedLeaderWorkerSetOperatorInformer(client versioned.Interface, resyncPeriod time.Duration, indexers LeaderWorkerSetOperatorIndexers) LeaderWorkerSetOperatorIndexInformer {
+	return NewTypedLeaderWorkerSetOperatorInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers)})
 }
 
 // NewFilteredLeaderWorkerSetOperatorInformer constructs a new informer for LeaderWorkerSetOperator type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedFilteredLeaderWorkerSetOperatorInformer]).
 func NewFilteredLeaderWorkerSetOperatorInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return NewLeaderWorkerSetOperatorInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+	return NewTypedLeaderWorkerSetOperatorInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewTypedFilteredLeaderWorkerSetOperatorInformer constructs a new informer for LeaderWorkerSetOperator type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedFilteredLeaderWorkerSetOperatorInformer(client versioned.Interface, resyncPeriod time.Duration, indexers LeaderWorkerSetOperatorIndexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) LeaderWorkerSetOperatorIndexInformer {
+	return NewTypedLeaderWorkerSetOperatorInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers), TweakListOptions: tweakListOptions})
 }
 
 // NewLeaderWorkerSetOperatorInformerWithOptions constructs a new informer for LeaderWorkerSetOperator type with additional options.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedLeaderWorkerSetOperatorInformerWithOptions]).
 func NewLeaderWorkerSetOperatorInformerWithOptions(client versioned.Interface, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	return NewTypedLeaderWorkerSetOperatorInformerWithOptions(client, options)
+}
+
+// NewTypedLeaderWorkerSetOperatorInformerWithOptions constructs a new informer for LeaderWorkerSetOperator type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedLeaderWorkerSetOperatorInformerWithOptions(client versioned.Interface, options internalinterfaces.InformerOptions) LeaderWorkerSetOperatorIndexInformer {
 	gvr := schema.GroupVersionResource{Group: "operator.openshift.io", Version: "v1", Resource: "leaderworkersetoperators"}
 	identifier := options.InformerName.WithResource(gvr)
 	tweakListOptions := options.TweakListOptions
-	return cache.NewSharedIndexInformerWithOptions(
+	return cache.NewTypedSharedIndexInformer[*apisleaderworkersetoperatorv1.LeaderWorkerSetOperator](cache.NewSharedIndexInformerWithOptions(
 		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
 			ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
@@ -97,17 +149,57 @@ func NewLeaderWorkerSetOperatorInformerWithOptions(client versioned.Interface, o
 			Indexers:     options.Indexers,
 			Identifier:   identifier,
 		},
-	)
+	))
 }
 
 func (f *leaderWorkerSetOperatorInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewLeaderWorkerSetOperatorInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
+	return NewTypedLeaderWorkerSetOperatorInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *leaderWorkerSetOperatorInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&apisleaderworkersetoperatorv1.LeaderWorkerSetOperator{}, f.defaultInformer)
+	return f.TypedInformer()
+}
+
+func (f *leaderWorkerSetOperatorInformer) TypedInformer() LeaderWorkerSetOperatorIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apisleaderworkersetoperatorv1.LeaderWorkerSetOperator](f.factory.InformerFor(&apisleaderworkersetoperatorv1.LeaderWorkerSetOperator{}, f.defaultInformer))
 }
 
 func (f *leaderWorkerSetOperatorInformer) Lister() leaderworkersetoperatorv1.LeaderWorkerSetOperatorLister {
 	return leaderworkersetoperatorv1.NewLeaderWorkerSetOperatorLister(f.Informer().GetIndexer())
+}
+
+// ToTypedLeaderWorkerSetOperatorInformer converts an untyped informer into a TypedLeaderWorkerSetOperatorInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *LeaderWorkerSetOperator. If that is not the case, calling type-safe methods of the returned
+// TypedLeaderWorkerSetOperatorInformer leads to runtime panics. A safer alternative is to pass
+// around a TypedLeaderWorkerSetOperatorInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTypedLeaderWorkerSetOperatorInformer(informer LeaderWorkerSetOperatorInformer) TypedLeaderWorkerSetOperatorInformer {
+	if informer, ok := informer.(TypedLeaderWorkerSetOperatorInformer); ok {
+		return informer
+	}
+	return &leaderWorkerSetOperatorTypedInformerAdapter{informer}
+}
+
+type leaderWorkerSetOperatorTypedInformerAdapter struct {
+	LeaderWorkerSetOperatorInformer
+}
+
+func (a *leaderWorkerSetOperatorTypedInformerAdapter) TypedInformer() LeaderWorkerSetOperatorIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apisleaderworkersetoperatorv1.LeaderWorkerSetOperator](a.Informer())
+}
+
+// ToLeaderWorkerSetOperatorIndexInformer converts an untyped informer into a LeaderWorkerSetOperatorIndexInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *LeaderWorkerSetOperator. If that is not the case, calling type-safe methods of the returned
+// LeaderWorkerSetOperatorIndexInformer leads to runtime panics. A safer alternative is to pass
+// around a LeaderWorkerSetOperatorIndexInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToLeaderWorkerSetOperatorIndexInformer(informer cache.SharedIndexInformer) LeaderWorkerSetOperatorIndexInformer {
+	if informer, ok := informer.(LeaderWorkerSetOperatorIndexInformer); ok {
+		return informer
+	}
+	return cache.NewTypedSharedIndexInformer[*apisleaderworkersetoperatorv1.LeaderWorkerSetOperator](informer)
 }
