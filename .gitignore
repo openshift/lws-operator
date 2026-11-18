@@ -16,3 +16,8 @@
 
 # _output
 _output
+
+# OTE test binaries and build artifacts
+/lws-operator
+/lws-operator-tests-ext
+/lws-operator-tests-ext.gz
