@@ -76,6 +76,8 @@ spec:
           readOnly: true
       securityContext:
         runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: lws-controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
