@@ -21,7 +21,6 @@ include $(addprefix ./vendor/github.com/openshift/build-machinery-go/make/, \
 	golang.mk \
 	targets/openshift/images.mk \
 	targets/openshift/deps.mk \
-	targets/openshift/crd-schema-gen.mk \
 )
 
 # Exclude e2e tests from unit testing
