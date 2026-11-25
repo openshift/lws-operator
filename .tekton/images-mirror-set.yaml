@@ -6,11 +6,11 @@ metadata:
 spec:
   imageDigestMirrors:
     - mirrors:
-        - quay.io/redhat-user-workloads/jobset-lws-pipeline-tenant/lws-operator-1-0/lws-operator-bundle-1-0
+        - quay.io/redhat-user-workloads/jobset-lws-pipeline-tenant/lws-operator-1-1/lws-operator-bundle-1-1
       source: registry.redhat.io/leader-worker-set/lws-operator-bundle
     - mirrors:
-        - quay.io/redhat-user-workloads/jobset-lws-pipeline-tenant/lws-operator-1-0/lws-operator-1-0
+        - quay.io/redhat-user-workloads/jobset-lws-pipeline-tenant/lws-operator-1-1/lws-operator-1-1
       source: registry.redhat.io/leader-worker-set/lws-rhel9-operator
     - mirrors:
-        - quay.io/redhat-user-workloads/jobset-lws-pipeline-tenant/lws-1-0/lws-1-0
+        - quay.io/redhat-user-workloads/jobset-lws-pipeline-tenant/lws-1-1/lws-1-1
       source: registry.redhat.io/leader-worker-set/lws-rhel9
