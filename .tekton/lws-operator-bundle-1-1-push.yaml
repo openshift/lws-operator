@@ -7,8 +7,15 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "release-5.0"
+    pipelinesascode.tekton.dev/on-cel-expression: |
+      event == "push"
+      && target_branch == "release-5.0"
+      && (
+      ".tekton/lws-operator-bundle-1-1-push.yaml".pathChanged()
+      || "metadata/***".pathChanged()
+      || "manifests/***".pathChanged()
+      || "bundle.Dockerfile".pathChanged()
+      )
   labels:
     appstudio.openshift.io/application: lws-operator-1-1
     appstudio.openshift.io/component: lws-operator-bundle-1-1
@@ -27,6 +34,10 @@ spec:
     value: bundle.Dockerfile
   - name: path-context
     value: .
+  - name: hermetic
+    value: "true"
+  - name: build-source-image
+    value: "true"
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
