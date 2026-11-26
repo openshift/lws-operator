@@ -302,7 +302,7 @@
     "schema": "olm.bundle",
     "name": "leader-worker-set.v1.1.0",
     "package": "leader-worker-set",
-    "image": "registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:4081a663fc2b5ba4ff98520aaf7da6d881db7e75526a6619d03f5040da451637",
+    "image": "registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:5ef3d98e8165f9387b262ddbe38aafa8dd2416230862fae25eaaf98bac88ec22",
     "properties": [
         {
             "type": "olm.gvk",
@@ -416,7 +416,7 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:4081a663fc2b5ba4ff98520aaf7da6d881db7e75526a6619d03f5040da451637"
+            "image": "registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:5ef3d98e8165f9387b262ddbe38aafa8dd2416230862fae25eaaf98bac88ec22"
         },
         {
             "name": "lws-operator",

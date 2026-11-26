@@ -6,4 +6,4 @@ Stable:
   Bundles:
     - Image: registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:f641cf3b2d6659e26eb0ae49c67a3416152a2fbc2f26f490889a2bd169b9ea06
     - Image: registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:7f63fded6b56f45004eb35fbe144d9c1d0a3bbea0c9c268df85a6f98a48d4862
-    - Image: registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:4081a663fc2b5ba4ff98520aaf7da6d881db7e75526a6619d03f5040da451637
+    - Image: registry.redhat.io/leader-worker-set/lws-operator-bundle@sha256:5ef3d98e8165f9387b262ddbe38aafa8dd2416230862fae25eaaf98bac88ec22
